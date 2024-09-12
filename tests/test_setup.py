@@ -28,7 +28,8 @@ def test_init():
         x_size=10 * ureg.mm,
         y_size=10 * ureg.mm,
         x_nodes=10,
-        y_nodes=10
+        y_nodes=10,
+        wavelength=1
     )
 
     a = torch.tensor(2)
@@ -58,7 +59,8 @@ def test_to_cuda_device():
         x_size=10 * ureg.mm,
         y_size=10 * ureg.mm,
         x_nodes=10,
-        y_nodes=10
+        y_nodes=10,
+        wavelength=1
     )
 
     el1 = SimpleElement(

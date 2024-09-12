@@ -70,6 +70,7 @@ def sigmoid_inv(x: torch.Tensor) -> torch.Tensor:
     return torch.log(x/(1-x))
 
 
+# TODO: rename to ConstrainedParameter
 class BoundedParameter(Parameter):
     """Constrained parameter
     """
@@ -96,8 +97,7 @@ class BoundedParameter(Parameter):
         max_value : Any
             maximum value tensor
         bound_func : Callable[[torch.Tensor], torch.Tensor], optional
-            function that map $\mathbb{R}\to[0,1]$,
-            by default torch.sigmoid
+            function that map $\mathbb{R}\to[0,1]$, by default torch.sigmoid
         inv_bound_func : Callable[[torch.Tensor], torch.Tensor], optional
             inverse function of `bound_func`
         requires_grad : bool, optional
