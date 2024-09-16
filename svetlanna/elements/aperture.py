@@ -64,7 +64,7 @@ class Aperture(Element):
 
 
 # TODO" check docstring
-class RectangularAperture(Element):
+class RectangularAperture(Aperture):
     """A rectangle-shaped aperture with a transmission function taking either
       a value of 0 or 1
 
@@ -91,48 +91,20 @@ class RectangularAperture(Element):
         width : float
             aperture width
         """
-
-        super().__init__(simulation_parameters)
+        super().__init__(
+            simulation_parameters=simulation_parameters,
+            mask=torch.tensor(0)
+        )
 
         self.height = height
         self.width = width
-
-        self.transmission_function = ((torch.abs(
+        self.mask = ((torch.abs(
             self._x_grid) <= self.width/2) * (torch.abs(
                 self._y_grid) <= self.height/2)).float()
 
-    def forward(self, input_field: torch.Tensor) -> torch.Tensor:
-        """Method that calculates the field after propagating through the
-        rectangular aperture
-
-        Parameters
-        ----------
-        input_field : torch.Tensor
-            Field incident on the rectangular aperture
-
-        Returns
-        -------
-        torch.Tensor
-            The field after propagating through the rectangular aperture
-        """
-
-        return input_field * self.transmission_function
-
-    def get_transmission_function(self) -> torch.Tensor:
-        """Method which returns the transmission function of
-        the rectangular aperture
-
-        Returns
-        -------
-        torch.Tensor
-            transmission function of the rectangular aperture
-        """
-
-        return self.transmission_function
-
 
 # TODO: check docstrings
-class RoundAperture(Element):
+class RoundAperture(Aperture):
     """A round-shaped aperture with a transmission function taking either
       a value of 0 or 1
 
@@ -155,38 +127,11 @@ class RoundAperture(Element):
         radius : float
             Radius of the round-shaped aperture
         """
-
-        super().__init__(simulation_parameters)
+        super().__init__(
+            simulation_parameters=simulation_parameters,
+            mask=torch.tensor(0)
+        )
 
         self.radius = radius
-        self.transmission_function = ((torch.pow(self._x_grid, 2) + torch.pow(
+        self.mask = ((torch.pow(self._x_grid, 2) + torch.pow(
             self._y_grid, 2)) <= self.radius**2).float()
-
-    def forward(self, input_field: torch.Tensor) -> torch.Tensor:
-        """Method that calculates the field after propagating through the
-        round-shaped aperture
-
-        Parameters
-        ----------
-        input_field : torch.Tensor
-            Field incident on the round-shaped aperture
-
-        Returns
-        -------
-        torch.Tensor
-            The field after propagating through the round-shaped aperture
-        """
-
-        return input_field * self.transmission_function
-
-    def get_transmission_function(self) -> torch.Tensor:
-        """Method which returns the transmission function of
-        the round-shaped aperture
-
-        Returns
-        -------
-        torch.Tensor
-            transmission function of the round-shaped aperture
-        """
-
-        return self.transmission_function
