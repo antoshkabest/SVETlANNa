@@ -1,6 +1,7 @@
 from .element import Element
 from ..simulation_parameters import SimulationParameters
 import torch
+from ..parameters import OptimizableTensor
 
 
 # TODO: check docstrings
@@ -17,7 +18,7 @@ class SpatialLightModulator(Element):
     def __init__(
         self,
         simulation_parameters: SimulationParameters,
-        mask: torch.Tensor,
+        mask: OptimizableTensor,
         number_of_levels: int = 256
     ):
         """Constructor method

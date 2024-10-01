@@ -1,5 +1,5 @@
 import torch
-from typing import Callable, Any
+from typing import Callable, Any, TypeAlias
 
 
 class Parameter(torch.Tensor):
@@ -157,3 +157,7 @@ class ConstrainedParameter(Parameter):
 
     def __repr__(self) -> str:
         return f'Bounded parameter containing:\n{repr(self.value)}'
+
+
+OptimizableFloat: TypeAlias = float | torch.Tensor | torch.nn.Parameter | Parameter
+OptimizableTensor: TypeAlias = torch.Tensor | torch.nn.Parameter | Parameter

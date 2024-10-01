@@ -1,6 +1,7 @@
 from .element import Element
 from ..simulation_parameters import SimulationParameters
 import torch
+from ..parameters import OptimizableFloat
 
 
 # TODO: check docstrings
@@ -17,8 +18,8 @@ class ThinLens(Element):
     def __init__(
         self,
         simulation_parameters: SimulationParameters,
-        focal_length: float,
-        radius: float
+        focal_length: OptimizableFloat,
+        radius: OptimizableFloat
     ):
         """Constructor method
 

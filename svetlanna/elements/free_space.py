@@ -2,6 +2,7 @@ from .element import Element
 from ..simulation_parameters import SimulationParameters
 import torch
 from typing import Literal
+from ..parameters import OptimizableFloat
 
 
 # TODO: check docstrings
@@ -18,7 +19,7 @@ class FreeSpace(Element):
     def __init__(
         self,
         simulation_parameters: SimulationParameters,
-        distance: float,
+        distance: OptimizableFloat,
         method: Literal['auto', 'fresnel', 'AS']
     ):
         """Constructor method

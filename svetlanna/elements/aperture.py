@@ -1,5 +1,6 @@
 from .element import Element
 from ..simulation_parameters import SimulationParameters
+from ..parameters import OptimizableFloat
 import torch
 
 
@@ -77,8 +78,8 @@ class RectangularAperture(Aperture):
     def __init__(
         self,
         simulation_parameters: SimulationParameters,
-        height: float,
-        width: float
+        height: OptimizableFloat,
+        width: OptimizableFloat
     ):
         """Constructor method
 
@@ -116,7 +117,7 @@ class RoundAperture(Aperture):
     def __init__(
         self,
         simulation_parameters: SimulationParameters,
-        radius: float
+        radius: OptimizableFloat
     ):
         """Constructor method
 
