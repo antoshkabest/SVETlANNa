@@ -25,7 +25,8 @@ extensions = [
     'sphinx.ext.viewcode',     # Добавление ссылок на исходный код
     'sphinx.ext.todo',         # Поддержка TODO в документации
     'sphinx_autodoc_typehints',
-    'sphinx.ext.coverage'
+    'sphinx.ext.coverage',
+    'sphinx.ext.intersphinx',
 ]
 
 templates_path = ['_templates']
@@ -42,3 +43,15 @@ exclude_patterns = [
 html_theme = 'alabaster'
 html_static_path = ['_static']
 html_logo = '_static/dog.png'
+
+
+latex_documents = [
+    ('index', 'svetlanna.tex', 'SVETLANNa Documentation',
+     'Semen Chugunov', 'manual'),
+]
+
+latex_elements = {
+    'papersize': 'a4paper',
+    'pointsize': '11pt',
+    'latex_show_urls': 'footnote'
+}
