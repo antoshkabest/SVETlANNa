@@ -47,11 +47,10 @@ html_logo = '_static/dog.png'
 
 latex_documents = [
     ('index', 'svetlanna.tex', 'SVETLANNa Documentation',
-     'Semen Chugunov', 'manual'),
+     'Semen Chugunov, Vladimir Igoshin', 'manual'),
 ]
 
 latex_elements = {
     'papersize': 'a4paper',
-    'pointsize': '11pt',
-    'latex_show_urls': 'footnote'
+    'pointsize': '11pt'
 }

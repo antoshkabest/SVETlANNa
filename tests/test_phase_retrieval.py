@@ -5,7 +5,7 @@ import numpy as np
 from svetlanna import elements
 from svetlanna import SimulationParameters
 from svetlanna import Wavefront
-from svetlanna.phase_retrieval import phase_retrieval
+from svetlanna.phase_retrieval_problem import phase_retrieval
 from svetlanna import LinearOpticalSetup
 
 

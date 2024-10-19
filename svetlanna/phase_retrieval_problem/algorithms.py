@@ -1,6 +1,6 @@
 import torch
 
-from svetlanna.phase_retrieval import phase_retrieval_result as prr
+from svetlanna.phase_retrieval_problem import phase_retrieval_result as prr
 
 
 def gerchberg_saxton_algorithm(

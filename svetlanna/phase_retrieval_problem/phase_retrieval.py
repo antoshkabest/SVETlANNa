@@ -5,7 +5,7 @@ from typing import Protocol
 import torch
 
 from svetlanna import LinearOpticalSetup
-from svetlanna.phase_retrieval import algorithms
+from svetlanna.phase_retrieval_problem import algorithms
 
 
 class SetupLike(Protocol):
@@ -150,4 +150,3 @@ def retrieve_phase(
         raise ValueError('Unknown optimization method')
 
     return phase_distribution
-
