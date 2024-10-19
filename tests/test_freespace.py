@@ -19,6 +19,7 @@ parameters = [
     "error_energy"
 ]
 
+
 # TODO: fix docstrings
 @pytest.mark.parametrize(
     parameters,
