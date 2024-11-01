@@ -1,7 +1,7 @@
 import torch
 from .element import Element
 from ..simulation_parameters import SimulationParameters
-from ..wavefront import Wavefront
+from ..wavefront import Wavefront, mul
 from ..parameters import OptimizableTensor
 
 
@@ -54,7 +54,12 @@ class DiffractiveLayer(Element):
         Wavefront
             The field after propagating through the SLM
         """
-        return input_field * self.transmission_function
+        return mul(
+            input_field,
+            self.transmission_function,
+            ('H', 'W'),
+            self.simulation_parameters
+        )
 
     def reverse(self, transmitted_field: Wavefront) -> Wavefront:
         """Method that calculates the field after passing the SLM in back
@@ -72,5 +77,9 @@ class DiffractiveLayer(Element):
             Field transmitted on the SLM in back propagation
             (incident field in forward propagation)
         """
-
-        return transmitted_field * torch.conj(self.transmission_function)
+        return mul(
+            transmitted_field,
+            torch.conj(self.transmission_function),
+            ('H', 'W'),
+            self.simulation_parameters
+        )
