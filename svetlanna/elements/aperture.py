@@ -3,7 +3,7 @@ import torch
 from .element import Element
 from ..simulation_parameters import SimulationParameters
 from ..parameters import OptimizableFloat, OptimizableTensor
-from ..wavefront import Wavefront
+from ..wavefront import Wavefront, mul
 
 
 # TODO: check docstring
@@ -51,7 +51,12 @@ class Aperture(Element):
             The field after propagating through the aperture
         """
 
-        return input_field * self.mask
+        return mul(
+            input_field,
+            self.mask,
+            ('H', 'W'),
+            self.simulation_parameters
+        )
 
     def get_transmission_function(self) -> torch.Tensor:
         """Method which returns the transmission function of
