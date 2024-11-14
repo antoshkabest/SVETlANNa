@@ -4,8 +4,6 @@ import torch
 from torch import nn
 import numpy as np
 from svetlanna.wavefront import Wavefront
-# TODO: Use a new version of SimulationParameters after a release!
-from svetlanna.wavefront import NumericalMesh
 from svetlanna import SimulationParameters
 
 
@@ -56,7 +54,7 @@ class ToWavefront(nn.Module):
             # image -> phases from 0 to 2pi - eps
             phases = normalized_tensor * (2 * torch.pi - self.eps)
             if self.modulation_type == 'phase':  # phase modulation
-                # TODO: What is with an amplitude? Can it be zero?
+                # TODO: What is with an amplitude?
                 amplitudes = torch.ones(size=img_tensor.size())  # constant amplitude
             else:  # phase AND amplitude modulation 'amp&phase'
                 amplitudes = normalized_tensor
@@ -104,12 +102,12 @@ class GaussModulation(nn.Module):
         gauss_2d : torch.Tensor
             A gaussian distribution in a 2D plane.
         """
-        # TODO: Use a new version of SimulationParameters after a release!
-        num_mesh = NumericalMesh(self.sim_params)
+        x_grid, y_grid = self.sim_params.meshgrid(x_axis='W', y_axis='H')
+
         gauss_2d = 1 * torch.exp(
             -1 * (
-                    (num_mesh.x_grid - self.peak_x) ** 2 / 2 / self.sigma_x ** 2 +
-                    (num_mesh.y_grid - self.peak_y) ** 2 / 2 / self.sigma_y ** 2
+                    (x_grid - self.peak_x) ** 2 / 2 / self.sigma_x ** 2 +
+                    (y_grid - self.peak_y) ** 2 / 2 / self.sigma_y ** 2
             )
         )
         return gauss_2d
@@ -129,7 +127,8 @@ class GaussModulation(nn.Module):
         wf_gauss : Wavefront
             A gaussian distribution in a 2D plane.
         """
-        sim_nodes_shape = torch.Size([self.sim_params.y_nodes, self.sim_params.x_nodes])  # [W, H]
+        sim_nodes_shape = self.sim_params.axes_size(axs=('H', 'W'))  # [H, W]
+
         if not wf.size()[-2:] == sim_nodes_shape:
             warnings.warn(
                 message='A shape of an input Wavefront does not match with SimulationParameters! Gauss was not applied!'
