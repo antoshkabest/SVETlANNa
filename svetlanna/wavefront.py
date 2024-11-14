@@ -32,7 +32,7 @@ class Wavefront(torch.Tensor):
         torch.Tensor
             phase from $0$ to $2\\pi$
         """
-        res = torch.angle(torch.Tensor(self))
+        res = torch.angle(torch.Tensor(self) + 0.0)  # HOTFIX: problem with phase of -0. in visualization
         res[res < 0] += 2 * torch.pi
         return res
 
