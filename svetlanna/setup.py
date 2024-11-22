@@ -1,10 +1,14 @@
 from typing import Iterable
 from .elements import Element
+from .simulation_parameters import SimulationParameters
 from torch import nn
 from torch import Tensor
+import torch
 import anywidget
 import traitlets
 import pathlib
+import base64
+import io
 
 
 class LinearOpticalSetupWidget(anywidget.AnyWidget):
@@ -16,6 +20,13 @@ class LinearOpticalSetupWidget(anywidget.AnyWidget):
         'open': True,
         'show_all': False,
     }).tag(sync=True)
+
+
+class LinearOpticalSetupStepwiseForwardWidget(LinearOpticalSetupWidget):
+    _esm = pathlib.Path(__file__).parent / 'static' / 'setup_stepwise_forward_widget.js'
+    _css = pathlib.Path(__file__).parent / 'static' / 'setup_widget.css'
+
+    wavefront_images = traitlets.List([]).tag(sync=True)
 
 
 class LinearOpticalSetup:
@@ -120,4 +131,69 @@ class LinearOpticalSetup:
 
         widget.settings = new_settings
         widget.elements = elements
+        return widget
+
+    def show_stepwise_forward(
+        self,
+        input_wavefront: Tensor,
+        simulation_parameters: SimulationParameters,
+        **settings
+    ) -> LinearOpticalSetupStepwiseForwardWidget:
+        widget = LinearOpticalSetupStepwiseForwardWidget()
+        elements = []
+        for index, element in enumerate(self.elements):
+            elements.append({
+                'index': index,
+                'type': element.__class__.__name__,
+                'specs_html': element._repr_html_()
+            })
+
+        new_settings = {}
+        for name in widget.settings.keys():
+            if name in settings:
+                new_settings[name] = settings[name]
+            else:
+                new_settings[name] = widget.settings[name]
+
+        widget.settings = new_settings
+        widget.elements = elements
+
+        import matplotlib.pyplot as plt
+
+        _, stepwise_wavefront = self.stepwise_forward(
+            input_wavefront=input_wavefront
+        )
+
+        wavefront_images = []
+        for wavefront in stepwise_wavefront:
+            stream = io.BytesIO()
+
+            figure, ax = plt.subplots(1, 2, figsize=(8, 3), dpi=120)
+
+            ax[0].pcolorfast(
+                simulation_parameters.axes.W,
+                simulation_parameters.axes.H,
+                wavefront.abs().detach().numpy()
+            )
+            ax[0].set_aspect('equal')
+
+            ax[1].pcolorfast(
+                simulation_parameters.axes.W,
+                simulation_parameters.axes.H,
+                wavefront.angle().detach().numpy(),
+                vmin=-torch.pi,
+                vmax=torch.pi,
+            )
+            ax[1].set_aspect('equal')
+
+            plt.tight_layout()
+            figure.savefig(stream)
+            plt.close(figure)
+
+            wavefront_images.append(
+                base64.b64encode(stream.getvalue()).decode()
+            )
+
+        widget.wavefront_images = wavefront_images
+
         return widget

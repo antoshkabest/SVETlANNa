@@ -32,9 +32,9 @@ function insertElementSpecsHtml(el, element) {
 
 elements.forEach(element => {
     let elementDiv = document.createElement("div")
-    elementDiv.className = 'svetlanna-element'
+    elementDiv.className = 'svetlanna-element clickable'
     if (element.type == 'FreeSpace') {
-        elementDiv.className = 'svetlanna-element svetlanna-element-free-space'
+        elementDiv.className = 'svetlanna-element svetlanna-element-free-space clickable'
     }
 
     elementDiv.innerHTML = `<div class="svetlanna-element-index">(${element.index})</div>`
