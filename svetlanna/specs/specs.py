@@ -1,8 +1,9 @@
-from typing import Iterable, Any, Generator, TextIO, Generic, TypeVar
+from typing import Iterable, Any, Generator, TextIO, Generic, TypeVar, Literal
 from abc import ABCMeta, abstractmethod
 from io import BufferedWriter
 from contextlib import contextmanager
 from pathlib import Path
+from PIL import Image
 from numpy.typing import ArrayLike
 import numpy as np
 import torch
@@ -134,12 +135,12 @@ class StrRepresentation(
 
 class ImageRepr(StrRepresentation, MarkdownRepresentation):
     """Representation of the parameter as an image.
-    Image generation is based on the `matplotlib` package.
+    Image generation is based on the `pillow` package.
     """
     def __init__(
         self,
         value: Any,
-        mpl_kwargs: dict[str, Any] | None = None,
+        mode: Literal['1', 'L', 'LA', 'I', 'P', 'RGB', 'RGBA'] = 'L',
         format: str = 'png',
         show_image: bool = True
     ):
@@ -148,16 +149,16 @@ class ImageRepr(StrRepresentation, MarkdownRepresentation):
         ----------
         value : Any
             The image data. See `matplotlib.pyplot.imshow` docs.
-        mpl_kwargs : dict[str, Any] | None, optional
-            kwargs, that will be passed to `matplotlib.pyplot.imshow`,
-            by default None
+        mode : Literal['1', 'L', 'LA', 'I', 'P', 'RGB', 'RGBA'], optional
+            the mode of the image, see https://pillow.readthedocs.io/en/stable/handbook/concepts.html#concept-modes.
+            By default `P`
         format : str, optional
             the image format, by default 'png'
         """
         super().__init__()
         self.value = value
         self.format = format
-        self.mpl_kwargs = mpl_kwargs if mpl_kwargs is not None else {}
+        self.mode = mode
         self.show_image = show_image
 
     def draw_image(self, context: ParameterSaveContext, filepath: Path):
@@ -170,13 +171,10 @@ class ImageRepr(StrRepresentation, MarkdownRepresentation):
         filepath : Path
             path to the image file to be created
         """
-        import matplotlib.pyplot as plt
 
         with context.file(filepath=filepath) as f:
-            figure, ax = plt.subplots()
-            ax.imshow(self.value, **self.mpl_kwargs)
-            figure.savefig(f)
-            plt.close(figure)
+            image = Image.fromarray(self.value, mode=self.mode)
+            image.save(f, format=self.format)
 
     def to_str(self, out: TextIO, context: ParameterSaveContext):
         filepath = context.get_new_filepath(extension=self.format)
@@ -190,9 +188,9 @@ class ImageRepr(StrRepresentation, MarkdownRepresentation):
 
         self.draw_image(context=context, filepath=filepath)
 
-        out.write(f'The image is saved to `{filepath}`:\n')
+        out.write(f'The image is saved to `{filepath}`\n')
         if self.show_image:
-            out.write(f'![{context.parameter_name}]({filepath})')
+            out.write(f'\n![{context.parameter_name}]({filepath})\n\n')
 
 
 class ReprRepr(StrRepresentation, MarkdownRepresentation):
@@ -292,7 +290,7 @@ class PrettyReprRepr(ReprRepr):
                     s = f'{class_name}\n'
                     s += f'  ┏ min value {self.value.min_value.item()}{units_suffix}\n'
                     s += f'  ┗ max value {self.value.max_value.item()}{units_suffix}\n'
-                    return s + f'{self.value.item()}{units_suffix}'  
+                    return s + f'{self.value.item()}{units_suffix}'
                 return f'{class_name}\n{self.value.item()}{units_suffix}'
 
             shape_str = "x".join(map(str, shape))
