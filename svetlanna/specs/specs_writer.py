@@ -112,7 +112,7 @@ def write_specs_to_str(
         if isinstance(representation, StrRepresentation):
             # write separator between two representations
             if writer_context.representation.index != 0:
-                stream.write('\n\n')
+                stream.write('\n')
 
             _stream = StringIO('')
 
@@ -170,7 +170,7 @@ def write_specs_to_markdown(
         if isinstance(representation, MarkdownRepresentation):
             # write separator between two representations
             if writer_context.representation.index != 0:
-                stream.write('\n\n')
+                stream.write('\n')
 
             representation.to_markdown(
                 out=stream,
@@ -230,7 +230,7 @@ def write_specs(
     directory: str | Path = '',
 ):
     Path.mkdir(Path(directory), parents=True, exist_ok=True)
-    path = Path(directory, filename)
+    path = Path(filename)
 
     with open(path, 'w') as file:
         if filename.endswith('.txt'):
