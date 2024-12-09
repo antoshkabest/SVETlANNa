@@ -23,7 +23,8 @@ def test_agr_short_description(input):
     if isinstance(input, torch.Tensor):
         # test for torch.Tensor
         assert agr_short_description(input) == (
-            f"{type(input)} shape={input.shape}, dtype={input.dtype}, device={input.device}"
+            f"{type(input)} shape={input.shape}, "
+            f"dtype={input.dtype}, device={input.device}"
         )
     else:
         # test for other types
@@ -143,7 +144,7 @@ def test_register_logging_hook(input, type_, capfd):
 
     register_logging_hook(element, 'test_name', input, type_)
 
-    expected_out = f'{type_} of {element} was registered with name test_name:' 
+    expected_out = f'{type_} of {element} was registered with name test_name:'
     expected_out += f'\n   {type(input)}'
 
     out, _ = capfd.readouterr()  # read stdout
@@ -162,8 +163,8 @@ def test_register_logging_hook(input, type_, capfd):
 )
 def test_set_debug_logging(input, output, capfd, caplog):
     # test wrong type
-    with pytest.raises(ValueError) as e_info:
-        svetlanna.set_debug_logging(False, type='123')
+    with pytest.raises(ValueError):
+        svetlanna.set_debug_logging(False, type='123')  # type: ignore
 
     input = input if isinstance(input, tuple) else (input,)
     output = output if isinstance(output, tuple) else (output,)
@@ -191,7 +192,7 @@ def test_set_debug_logging(input, output, capfd, caplog):
                 }
             )
         )
-        element(*input if isinstance(input, tuple) else input)
+        element(*input)
 
     expected_output_1 = (
         "Module of ElementLike() was registered with name a:\n"
@@ -244,7 +245,11 @@ def test_set_debug_logging(input, output, capfd, caplog):
     logger.setLevel(logging.DEBUG)  # set logging level to DEBUG
     run_element()
     assert caplog.record_tuples == [
-        ("svetlanna.logging", logging.DEBUG, message) for message in expected_outputs
+        (
+            "svetlanna.logging",
+            logging.DEBUG,
+            message
+        ) for message in expected_outputs
     ]
 
     caplog.clear()  # clear caplog
