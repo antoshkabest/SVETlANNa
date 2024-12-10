@@ -105,7 +105,7 @@ class FreeSpace(Element):
             #      sqrt(k^2-(kx^2 + ky^2)) if (kx^2 + ky^2) <= k^2,
             #      kz=|k| otherwise
             wave_number_z = torch.sqrt(
-                self._wave_number**2 - _wave_number_x2y2 * self._low_pass_filter  # noqa: E501
+                self._wave_number**2 - _wave_number_x2y2
             )
         else:
             wave_number_z = torch.sqrt(
@@ -138,7 +138,7 @@ class FreeSpace(Element):
         # Fourier image of impulse response function,
         # 0 if k^2 < (kx^2 + ky^2) [if use_filter]
         return self._low_pass_filter * torch.exp(
-            1j * self.distance * self._wave_number_z
+            (1j*self.distance) * self._wave_number_z
         )
 
     def impulse_response_fresnel(self) -> torch.Tensor:
@@ -152,9 +152,9 @@ class FreeSpace(Element):
 
         # Fourier image of impulse response function
         return self._low_pass_filter * torch.exp(
-            1j * self.distance * self._wave_number_z_eff_fresnel
+            (1j*self.distance) * self._wave_number_z_eff_fresnel
         ) * torch.exp(
-            1j * self.distance * self._wave_number
+            (1j*self.distance) * self._wave_number
         )
 
     def _impulse_response(self, tol: float = 1e-3) -> torch.Tensor:
@@ -248,7 +248,6 @@ class FreeSpace(Element):
             transmission_field, dim=(self._h_index, self._w_index)
         )
 
-        # TODO: check physics. Not sure that conj() is enough
         impulse_response_fft = self._impulse_response().conj()
 
         # Fourier image of output field
