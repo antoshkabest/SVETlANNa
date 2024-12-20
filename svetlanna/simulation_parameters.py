@@ -3,6 +3,15 @@ import torch
 import warnings
 
 
+class AxisNotFound(Exception):
+    pass
+
+
+_AXES_INNER_ATTRS = tuple(
+    f'_Axes{i}' for i in ('__axes_dict', '__names', '__names_inversed')
+)
+
+
 class Axes:
     """Axes storage"""
     def __init__(self, axes: dict[str, torch.Tensor]) -> None:
@@ -33,6 +42,7 @@ class Axes:
                 non_scalar_names.append(axis_name)
 
         self.__axes_dict = axes
+        self.__names_inversed = tuple(non_scalar_names)
         self.__names = tuple(reversed(non_scalar_names))
 
         if TYPE_CHECKING:
@@ -45,9 +55,27 @@ class Axes:
         """Non-scalar axes' names"""
         return self.__names
 
+    def index(self, name: str) -> int:
+        """Index of specific axis in the tensor.
+        The index is negative.
+
+        Parameters
+        ----------
+        name : str
+            name of the axis
+
+        Returns
+        -------
+        int
+            index of the axis
+        """
+        if name in self.__names:
+            return -self.__names_inversed.index(name) - 1
+        raise AxisNotFound(f'Axis with name {name} does not exist.')
+
     def __getattribute__(self, name: str) -> Any:
 
-        if name in (f'_Axes{i}' for i in ('__axes_dict', '__names')):
+        if name in _AXES_INNER_ATTRS:
             return super().__getattribute__(name)
 
         axes = self.__axes_dict
@@ -62,7 +90,7 @@ class Axes:
         if name in axes:
             return axes[name]
 
-        raise KeyError(name)
+        raise AxisNotFound(f'Axis with name {name} does not exist.')
 
     def __setitem__(self, name: str) -> None:
         raise RuntimeError('Axis can not be changed')
