@@ -10,7 +10,7 @@ from ..axes_math import tensor_dot
 
 class FreeSpace(Element):
     """A class that describes a propagation of the field in free space
-    before two optical elements
+    between two optical elements
     """
 
     def __init__(
@@ -19,14 +19,14 @@ class FreeSpace(Element):
         distance: OptimizableFloat,
         method: Literal['auto', 'fresnel', 'AS']
     ):
-        """Constructor method
+        """Free space element.
 
         Parameters
         ----------
         simulation_parameters : SimulationParameters
-            Class exemplar, that describes optical system
+            An instance describing the optical system's simulation parameters.
         distance : float
-            distance between two optical elements
+            The distance of the free space propagation.
         method : Literal['auto', 'fresnel', 'AS']
             Method describing propagation in free space
                 (1) 'AS' - angular spectrum method,
@@ -35,12 +35,8 @@ class FreeSpace(Element):
         """
         super().__init__(simulation_parameters)
 
-        self.distance = self.process_parameter(
-            'distance', distance
-        )
-        self.method = self.process_parameter(
-            'method', method
-        )
+        self.distance = self.process_parameter('distance', distance)
+        self.method = self.process_parameter('method', method)
 
         # params extracted from SimulationParameters
         device = self.simulation_parameters.device
@@ -136,7 +132,7 @@ class FreeSpace(Element):
         )
 
     def impulse_response_angular_spectrum(self) -> torch.Tensor:
-        """Create the impulse response function for angular spectrum method
+        """Creates the impulse response function for angular spectrum method
 
         Returns
         -------
@@ -152,7 +148,7 @@ class FreeSpace(Element):
         )  # Comment: Here we use the following exponent: `exp(+ i * d * k)`
 
     def impulse_response_fresnel(self) -> torch.Tensor:
-        """Create the impulse response function for fresnel approximation
+        """Creates the impulse response function for fresnel approximation
 
         Returns
         -------
@@ -169,7 +165,7 @@ class FreeSpace(Element):
         )
 
     def _impulse_response(self, tol: float = 1e-3) -> torch.Tensor:
-        """Calculate the impulse response function based on selected method
+        """Calculates the impulse response function based on selected method
 
         Parameters
         ----------
@@ -215,7 +211,7 @@ class FreeSpace(Element):
         self,
         input_field: Wavefront
     ) -> Wavefront:
-        """Method that calculates the field after propagating in the free space
+        """Calculates the field after propagating in the free space
 
         Parameters
         ----------
@@ -256,19 +252,19 @@ class FreeSpace(Element):
 
         return output_field
 
-    def reverse(self, transmission_field: torch.Tensor) -> Wavefront:
+    def reverse(self, transmission_field: Wavefront) -> Wavefront:
         # TODO: Check the description...
         """Calculate the field after it propagates in the free space
         in the backward direction.
 
         Parameters
         ----------
-        transmission_field : torch.Tensor
+        transmission_field : Wavefront
             Field to be propagated in the backward direction
 
         Returns
         -------
-        torch.Tensor
+        Wavefront
             Propagated in the backward direction field
         """
 
@@ -285,7 +281,7 @@ class FreeSpace(Element):
             b=impulse_response_fft,  # example shape: ('wavelength', 'H', 'W')
             a_axis=self.simulation_parameters.axes.names,
             b_axis=self._calc_axes,
-            preserve_a_axis=True  # check that the output has the input shape
+            preserve_a_axis=True  # check that the output has the first input shape
         )  # example output shape: (5, 'wavelength', 1, 'H', 'W')
 
         incident_field = torch.fft.ifft2(
