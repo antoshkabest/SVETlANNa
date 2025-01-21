@@ -2,10 +2,10 @@ import torch
 
 from .element import Element
 from ..simulation_parameters import SimulationParameters
-from ..parameters import OptimizableTensor, OptimizableFloat
+from ..parameters import OptimizableFloat
 from ..wavefront import Wavefront, mul
-from typing import Callable
-from torch.nn.functional import interpolate
+from typing import Callable, Tuple, Literal
+from torch.nn.functional import interpolate, relu
 
 
 class SpatialLightModulator(Element):
@@ -20,139 +20,142 @@ class SpatialLightModulator(Element):
 
     def __init__(
         self,
+        simulation_parameters: SimulationParameters,
         mask: torch.Tensor,
         height: OptimizableFloat,
-        height_resolution: int,
         width: OptimizableFloat,
-        width_resolution: int,
-        step_function: Callable
+        location: Tuple = (0., 0.),
+        number_of_levels: int = 256,
+        step_function: Callable[[torch.Tensor], torch.Tensor] = relu,
+        mode: Literal[
+            'nearest',
+            'bilinear',
+            'bicubic',
+            'area',
+            'nearest-exact'
+        ] = 'nearest'
     ):
+
+        super().__init__(simulation_parameters)
+
         self.mask = mask
         self.height = height
-        self.height_resolution = height_resolution
         self.width = width
-        self.width_resolution = width_resolution
         self.step_function = step_function
+        self.x, self.y = location
+        self.mode = mode
+        self.number_of_levels = number_of_levels
 
-    def to_simulation_parameters(
-        self,
-        simulation_parameters: SimulationParameters
-    ) -> torch.Tensor:
+        self.height_resolution, self.width_resolution = self.mask.shape
 
-        _x_linear = simulation_parameters.axes.W
-        _y_linear = simulation_parameters.axes.H
+        self._device = self.simulation_parameters.device
 
-        x_nodes = _x_linear.shape[0]
-        y_nodes = _y_linear.shape[0]
+        self._w_index = self.simulation_parameters.axes.index('W')
+        self._h_index = self.simulation_parameters.axes.index('H')
 
-        upscaled_mask = self.mask.unsqueeze(0).unsqueeze(0)
+        self._x_linear = self.simulation_parameters.axes.W
+        self._y_linear = self.simulation_parameters.axes.H
+
+        self._x_grid = self._x_linear[None, :]
+        self._y_grid = self._y_linear[:, None]
+
+    @property
+    def get_aperture(self) -> torch.Tensor:
+
+        self.aperture = ((torch.abs(
+            self._x_grid - self.x) <= self.width/2) * (torch.abs(
+                self._y_grid - self.y) <= self.height/2)).to(
+                    dtype=torch.get_default_dtype(),
+                    device=self._device
+                )
+        return self.aperture
+
+    @property
+    def resize_mask(self) -> torch.Tensor:
+
+        _y_indices, _x_indices = torch.where(self.aperture == 1)
+        _y_indices, _x_indices = torch.unique(_y_indices), torch.unique(_x_indices)  # noqa: E501
+
+        self.left_boundary = _x_indices[
+            torch.argmin(
+                torch.abs(self._x_linear[_x_indices] - (self.x - self.width / 2))   # noqa: E501
+            ).item()
+        ]
+        self.right_boundary = _x_indices[
+            torch.argmin(
+                torch.abs(self._x_linear[_x_indices] - (self.x + self.width / 2))   # noqa: E501
+            ).item()
+        ]
+        self.top_boundary = _y_indices[
+            torch.argmin(
+                torch.abs(self._y_linear[_y_indices] - (self.y + self.height / 2))  # noqa: E501
+            ).item()
+        ]
+        self.bottom_boundary = _y_indices[
+            torch.argmin(
+                torch.abs(self._y_linear[_y_indices] - (self.y - self.height / 2))  # noqa: E501
+            ).item()
+        ]
+
+        x_nodes_interpolate = self.right_boundary - self.left_boundary + 1
+        y_nodes_interpolate = self.top_boundary - self.bottom_boundary + 1
+
+        _resized_mask = self.mask.unsqueeze(0).unsqueeze(0)
 
         # interpolate to dimensions from simulation_parameters
-        upscaled_mask = interpolate(
-            upscaled_mask,
-            size=(y_nodes, x_nodes),
-            mode='nearest-exact'
+        _resized_mask = interpolate(
+            _resized_mask,
+            size=(y_nodes_interpolate, x_nodes_interpolate),
+            mode=self.mode
         )
 
         # delete added dimensions
-        self.upscaled_mask = upscaled_mask.squeeze(0).squeeze(0)
-        return self.upscaled_mask
+        self.resized_mask = _resized_mask.squeeze(0).squeeze(0)
+        return self.resized_mask
 
-    def forward(self):
-        return None
+    @property
+    def get_transmission_function(self) -> torch.Tensor:
 
+        _aperture = self.get_aperture
+        _resized_mask = self.resize_mask
 
-# TODO: check docstrings
-# class SpatialLightModulator(Element):
-#     """A class that described the field after propagating through the
-#     Spatial Light Modulator with a given phase mask
+        indices = (
+            slice(self.bottom_boundary, self.top_boundary + 1),
+            slice(self.left_boundary, self.right_boundary + 1)
+        )
 
-#     Parameters
-#     ----------
-#     Element : _type_
-#         _description_
-#     """
+        _phase_mask = _aperture.clone()
 
-#     def __init__(
-#         self,
-#         simulation_parameters: SimulationParameters,
-#         mask: OptimizableTensor,
-#         number_of_levels: int = 256
-#     ):
-#         """Constructor method
+        quantized_mask = 2 * torch.pi * (
+            self.step_function(
+                (
+                    (self.number_of_levels * _resized_mask) % (2 * torch.pi)
+                ) / (2 * torch.pi)
+            ) + (self.number_of_levels * _resized_mask) // (2 * torch.pi)
+        ) / self.number_of_levels
 
-#         Parameters
-#         ----------
-#         simulation_parameters : SimulationParameters
-#             Class exemplar, that describes optical system
-#         mask : torch.Tensor
-#             Phase mask in grey format for the SLM, every element must be int
-#         number_of_levels : int, optional
-#             Number of phase quantization levels for the SLM, by default 256
-#         """
+        _phase_mask[indices] = quantized_mask
 
-#         super().__init__(simulation_parameters)
+        self.transmission_function = torch.exp(
+            1j * _phase_mask
+        )
 
-#         self.mask = mask
-#         self.number_of_levels = number_of_levels
+        return self.transmission_function
 
-#         self.transmission_function = torch.exp(
-#             1j * 2 * torch.pi / self.number_of_levels * self.mask
-#         )
+    def forward(self, input_field: Wavefront) -> Wavefront:
 
-#     def get_transmission_function(self) -> torch.Tensor:
-#         """Method which returns the transmission function of
-#         the SLM
+        return mul(
+                    input_field,
+                    self.get_transmission_function,
+                    ('H', 'W'),
+                    self.simulation_parameters
+                )
 
-#         Returns
-#         -------
-#         torch.Tensor
-#             transmission function of the SLM
-#         """
+    def reverse(self, transmission_field: Wavefront) -> Wavefront:
 
-#         return self.transmission_function
-
-#     def forward(self, input_field: Wavefront) -> Wavefront:
-#         """Method that calculates the field after propagating through the SLM
-
-#         Parameters
-#         ----------
-#         input_field : Wavefront
-#             Field incident on the SLM
-
-#         Returns
-#         -------
-#         Wavefront
-#             The field after propagating through the SLM
-#         """
-
-#         return mul(
-#             input_field,
-#             self.transmission_function,
-#             ('H', 'W'),
-#             self.simulation_parameters
-#         )
-
-#     def reverse(self, transmission_field: torch.Tensor) -> Wavefront:
-#         """Method that calculates the field after passing the SLM in back
-#         propagation
-
-#         Parameters
-#         ----------
-#         transmission_field : torch.Tensor
-#             Field incident on the SLM in back propagation
-#             (transmitted field in forward propagation)
-
-#         Returns
-#         -------
-#         torch.tensor
-#             Field transmitted on the SLM in back propagation
-#             (incident field in forward propagation)
-#         """
-
-#         return mul(
-#             transmission_field,
-#             torch.conj(self.transmission_function),
-#             ('H', 'W'),
-#             self.simulation_parameters
-#         )
+        return mul(
+                    transmission_field,
+                    torch.conj(self.get_transmission_function),
+                    ('H', 'W'),
+                    self.simulation_parameters
+                )

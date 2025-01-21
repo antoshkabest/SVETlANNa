@@ -100,7 +100,8 @@ class RectangularAperture(Aperture):
         self.mask = ((torch.abs(
             self._x_grid) <= self.width/2) * (torch.abs(
                 self._y_grid) <= self.height/2)).to(
-                    dtype=torch.get_default_dtype()
+                    dtype=torch.get_default_dtype(),
+                    device=self._device
                 )
 
 
@@ -131,5 +132,6 @@ class RoundAperture(Aperture):
         self.radius = self.process_parameter('radius', radius)
         self.mask = ((torch.pow(self._x_grid, 2) + torch.pow(
             self._y_grid, 2)) <= self.radius**2).to(
-                dtype=torch.get_default_dtype()
+                dtype=torch.get_default_dtype(),
+                device=self._device
             )
