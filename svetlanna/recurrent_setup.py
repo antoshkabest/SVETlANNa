@@ -56,8 +56,9 @@ class RecurrentOpticalSetup:
         return Wavefront(
             torch.zeros(
                 # TODO: right way to get a wavefront size?
+                # It will work only for one wavelength!
                 size=self.simulation_parameters.axes_size(
-                    self.simulation_parameters.axes.__dir__()
+                    axs=('H', 'W')  # self.simulation_parameters.axes.__dir__()
                 )
             )
         ).to(self.__device)
