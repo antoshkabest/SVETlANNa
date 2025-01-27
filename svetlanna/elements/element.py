@@ -3,7 +3,7 @@ from torch import nn
 from torch import Tensor
 from ..simulation_parameters import SimulationParameters
 from ..specs import ReprRepr, ParameterSpecs
-from typing import Iterable, TypeVar
+from typing import Iterable, TypeVar, TYPE_CHECKING
 from ..parameters import BoundedParameter, Parameter
 from ..wavefront import Wavefront
 
@@ -151,3 +151,9 @@ class Element(nn.Module, metaclass=ABCMeta):
         if isinstance(value, Tensor):
             return self.make_buffer(name, value, persistent=True)
         return value
+
+    # === methods below are added for typing only ===
+
+    if TYPE_CHECKING:
+        def __call__(self, input_field: Wavefront) -> Wavefront:
+            ...

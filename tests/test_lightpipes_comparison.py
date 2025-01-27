@@ -106,7 +106,7 @@ def test_circular_aperture(
     # field calculations
     G = sv.Wavefront.plane_wave(simulation_parameters)
     G = aperture(G)
-    G = fs1(input_field=G)
+    G = fs1(G)
     field_before_lens_sv = G
     G = lens(G)
     G = fs2(G)
