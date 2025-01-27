@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Iterable
 import torch
 
 from .element import Element
@@ -7,6 +7,7 @@ from ..parameters import OptimizableFloat
 from ..wavefront import Wavefront
 from ..axes_math import tensor_dot
 from warnings import warn
+from ..specs import PrettyReprRepr, ParameterSpecs
 
 
 class FreeSpace(Element):
@@ -324,3 +325,12 @@ class FreeSpace(Element):
         )
 
         return incident_field
+
+    def to_specs(self) -> Iterable[ParameterSpecs]:
+        return [
+            ParameterSpecs(
+                'distance', [
+                    PrettyReprRepr(self.distance),
+                ]
+            )
+        ]
