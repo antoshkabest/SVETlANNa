@@ -15,7 +15,9 @@ class InnerParameterStorageModule(torch.nn.Module):
                 self.register_buffer(name, value)
             else:
                 raise TypeError(
-                    f"Parameters should be instances of either torch.Tensor or torch.nn.Parameter. The type {type(value)} of {name} is not compatible."
+                    'Parameters should be instances of either torch.Tensor '
+                    'or torch.nn.Parameter. '
+                    'The type {type(value)} of {name} is not compatible.'
                 )
         self.params_to_store = params_to_store
 
@@ -189,6 +191,3 @@ class ConstrainedParameter(Parameter):
 
 OptimizableFloat: TypeAlias = float | torch.Tensor | torch.nn.Parameter | Parameter
 OptimizableTensor: TypeAlias = torch.Tensor | torch.nn.Parameter | Parameter
-
-
-BoundedParameter = ConstrainedParameter
