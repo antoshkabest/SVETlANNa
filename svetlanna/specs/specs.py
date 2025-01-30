@@ -188,7 +188,7 @@ class ImageRepr(StrRepresentation, MarkdownRepresentation, HTMLRepresentation):
             The image data. See `matplotlib.pyplot.imshow` docs.
         mode : Literal['1', 'L', 'LA', 'I', 'P', 'RGB', 'RGBA'], optional
             the mode of the image, see https://pillow.readthedocs.io/en/stable/handbook/concepts.html#concept-modes.
-            By default `P`
+            By default `L`
         format : str, optional
             the image format, by default 'png'
         """
