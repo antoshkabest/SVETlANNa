@@ -71,6 +71,8 @@ def test_phase_retrieval(
         Criterion for accepting the test(energy loss)
     """
 
+    torch.set_default_dtype(torch.float32)
+
     params = SimulationParameters(
         {
             'W': torch.linspace(-ox_size/2, ox_size/2, ox_nodes),
