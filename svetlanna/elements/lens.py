@@ -5,6 +5,8 @@ from ..simulation_parameters import SimulationParameters
 from ..parameters import OptimizableFloat
 from ..wavefront import Wavefront, mul
 from ..axes_math import tensor_dot
+from typing import Iterable
+from ..specs import PrettyReprRepr, ParameterSpecs
 
 
 class ThinLens(Element):
@@ -143,3 +145,17 @@ class ThinLens(Element):
             self._calc_axes,
             self.simulation_parameters
         )
+
+    def to_specs(self) -> Iterable[ParameterSpecs]:
+        return [
+            ParameterSpecs(
+                'focal_length', [
+                    PrettyReprRepr(self.focal_length),
+                ]
+            ),
+            ParameterSpecs(
+                'radius', [
+                    PrettyReprRepr(self.radius)
+                ]
+            )
+        ]

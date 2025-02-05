@@ -5,6 +5,8 @@ from ..simulation_parameters import SimulationParameters
 from ..parameters import OptimizableTensor
 from ..wavefront import Wavefront, mul
 from abc import ABC, abstractmethod
+from typing import Iterable
+from ..specs import ImageRepr, PrettyReprRepr, ParameterSpecs
 
 
 class MulElement(Element, ABC):
@@ -94,6 +96,16 @@ class Aperture(MulElement):
     def get_transmission_function(self) -> torch.Tensor:
         return self.mask
 
+    def to_specs(self) -> Iterable[ParameterSpecs]:
+        return [
+            ParameterSpecs(
+                'mask', [
+                    PrettyReprRepr(self.mask),
+                    ImageRepr(self.mask.numpy(force=True)),
+                ]
+            )
+        ]
+
 
 # TODO" check docstring
 class RectangularAperture(MulElement):
@@ -148,6 +160,20 @@ class RectangularAperture(MulElement):
     def get_transmission_function(self) -> torch.Tensor:
         return self._mask
 
+    def to_specs(self) -> Iterable[ParameterSpecs]:
+        return [
+            ParameterSpecs(
+                'height', [
+                    PrettyReprRepr(self.height)
+                ]
+            ),
+            ParameterSpecs(
+                'width', [
+                    PrettyReprRepr(self.width)
+                ]
+            )
+        ]
+
 
 # TODO: check docstrings
 class RoundAperture(MulElement):
@@ -192,3 +218,12 @@ class RoundAperture(MulElement):
 
     def get_transmission_function(self) -> torch.Tensor:
         return self._mask
+
+    def to_specs(self) -> Iterable[ParameterSpecs]:
+        return [
+            ParameterSpecs(
+                'radius', [
+                    PrettyReprRepr(self.radius)
+                ]
+            )
+        ]

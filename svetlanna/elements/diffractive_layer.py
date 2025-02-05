@@ -3,6 +3,8 @@ from .element import Element
 from ..simulation_parameters import SimulationParameters
 from ..wavefront import Wavefront, mul
 from ..parameters import OptimizableTensor
+from typing import Iterable
+from ..specs import ImageRepr, PrettyReprRepr, ParameterSpecs
 
 
 class DiffractiveLayer(Element):
@@ -83,3 +85,18 @@ class DiffractiveLayer(Element):
             ('H', 'W'),
             self.simulation_parameters
         )
+
+    def to_specs(self) -> Iterable[ParameterSpecs]:
+        return [
+            ParameterSpecs(
+                'mask', [
+                    PrettyReprRepr(self.mask),
+                    ImageRepr(self.mask.numpy(force=True)),
+                ]
+            ),
+            ParameterSpecs(
+                'mask_norm', [
+                    PrettyReprRepr(self.mask_norm)
+                ]
+            )
+        ]
