@@ -4,6 +4,9 @@ import torch
 from svetlanna import elements
 from svetlanna import SimulationParameters
 from svetlanna import Wavefront as w
+from svetlanna import LinearOpticalSetup
+from svetlanna import detector
+
 
 parameters = "device_type"
 
@@ -37,8 +40,8 @@ def test_devices(device_type: torch.device):
 
     params = SimulationParameters(
         axes={
-            'W': torch.linspace(-ox_size / 2, ox_size / 2, ox_nodes).to(device_type),
-            'H': torch.linspace(-oy_size / 2, oy_size / 2, oy_nodes).to(device_type),
+            'W': torch.linspace(-ox_size / 2, ox_size / 2, ox_nodes).to(device_type),   # noqa: E501
+            'H': torch.linspace(-oy_size / 2, oy_size / 2, oy_nodes).to(device_type),   # noqa: E501
             'wavelength': wavelength.to(device_type)
             }
     ).to(device=device_type)
@@ -158,3 +161,117 @@ def test_devices(device_type: torch.device):
     tensors.append(nl.forward(gaussian_beam))
 
     assert all(tensor.device.type == device_type.type for tensor in tensors)
+
+
+@pytest.mark.parametrize(parameters, [
+    torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+    torch.device("cpu")
+])
+def test_device_setup(device_type: torch.device):
+
+    ox_size = 15.
+    oy_size = 8.
+    ox_nodes = 1200
+    oy_nodes = 1100
+    wavelength = torch.linspace(330*1e-6, 660*1e-6, 5)
+    # waist_radius = 2.
+    distance = 50.
+    focal_length = 100.
+    radius = 10.
+    height = 4.
+    width = 3.
+
+    params = SimulationParameters(
+        axes={
+            'W': torch.linspace(-ox_size / 2, ox_size / 2, ox_nodes),
+            'H': torch.linspace(-oy_size / 2, oy_size / 2, oy_nodes),
+            'wavelength': wavelength
+            }
+    )
+
+    x_grid, _ = params.meshgrid(x_axis='W', y_axis='H')
+
+    # gaussian_beam = w.gaussian_beam(
+    #     simulation_parameters=params,
+    #     waist_radius=waist_radius,
+    #     distance=distance
+    # )
+
+    free_space = elements.FreeSpace(
+        simulation_parameters=params,
+        distance=distance,
+        method="AS"
+    )
+
+    circle = elements.RoundAperture(
+        simulation_parameters=params,
+        radius=radius
+    )
+
+    rectangle = elements.RectangularAperture(
+        simulation_parameters=params,
+        height=height,
+        width=width
+    )
+
+    aperture = elements.Aperture(
+        simulation_parameters=params,
+        mask=torch.ones_like(x_grid)
+    )
+
+    lens = elements.ThinLens(
+        simulation_parameters=params,
+        focal_length=distance,
+        radius=focal_length
+    )
+
+    slm = elements.SpatialLightModulator(
+        simulation_parameters=params,
+        mask=torch.tensor([[1., 1.], [1., 1.]]),
+        height=height,
+        width=width
+    )
+
+    nl = elements.NonlinearElement(
+        simulation_parameters=params,
+        response_function=lambda x: x**2
+    )
+
+    dl = elements.DiffractiveLayer(
+        simulation_parameters=params,
+        mask=torch.zeros_like(x_grid)
+    )
+
+    det = detector.Detector(simulation_parameters=params)
+
+    optical_setup = LinearOpticalSetup(
+        [
+            circle,
+            free_space,
+            rectangle,
+            free_space,
+            aperture,
+            free_space,
+            lens,
+            free_space,
+            slm,
+            free_space,
+            nl,
+            free_space,
+            dl,
+            free_space,
+            det
+
+        ]
+    )
+
+    optical_setup.net.to(device_type)
+    params.to(device_type)
+    # output_field = optical_setup.net.forward(
+    #     input_wavefront=gaussian_beam.to(device_type)
+    # )
+
+    for param in optical_setup.net.parameters():
+        assert param.device == device_type
+
+    # assert optical_setup.net.device.type == device_type.type
