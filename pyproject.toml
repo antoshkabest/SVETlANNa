@@ -11,7 +11,6 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.11,<3.12"
 numpy = "<2.0"
-torch = "^2.4.0"
 matplotlib = "^3.9.2"
 torchvision = "^0.19.1"
 anywidget = "^0.9.13"
