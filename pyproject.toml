@@ -1,20 +1,38 @@
-[tool.poetry]
+[project]
 name = "svetlanna"
 version = "0.1.0"
-description = ""
-authors = ["Your Name <you@example.com>"]
-license = "MPL-2.0"
+description = "Open source library for simulation and engineering of diffractive neural networks"
+authors = [
+    {name="Alexey A. Shcherbakov", email="alexey.shcherbakov@metalab.ifmo.ru"},
+    {name="Alexey Y. Kokhanovskiy", email="a.kokhanovskiy@metalab.ifmo.ru"},
+    {name="Vladimir D. Igoshin", email="vladimir.igoshin@metalab.ifmo.ru"},
+    {name="Denis I. Sakhno", email="denis.sakhno@metalab.ifmo.ru"},
+    {name="Semen S. Chugunov", email="semen.chugunov@metalab.ifmo.ru"}
+]
+license = { text = "MPL-2.0", file = "LICENSE" }
 readme = "README.md"
+requires-python = "^3.11,<3.12"
+dependencies = [
+    "numpy<2.0",
+    "matplotlib<3.9.2",
+    "torchvision>=0.21.0",
+]
+
+[project.optional-dependencies]
+cpu = [
+    "torch (==2.6.0+cpu)",
+]
+cuda = [
+    "torch (==2.6.0+cu126)",
+]
 
 
 
 [tool.poetry.dependencies]
-python = "^3.11,<3.12"
-numpy = "<2.0"
-matplotlib = "^3.9.2"
-torchvision = "^0.19.1"
-anywidget = "^0.9.13"
-pillow = "^11.0.0"
+torch = [
+    { markers = "extra == 'cpu' and extra != 'cuda'", source = "pytorch-cpu"},
+    { markers = "extra == 'cuda' and extra != 'cpu'", source = "pytorch-cuda"},
+ ]
 
 
 [tool.poetry.group.dev.dependencies]
@@ -29,6 +47,15 @@ pytest-cov = "^6.0.0"
 lightpipes = "^2.1.5"
 torchmetrics = "^1.6.0"
 
+[[tool.poetry.source]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+priority = "explicit"
+
+[[tool.poetry.source]]
+name = "pytorch-cuda"
+url = "https://download.pytorch.org/whl/cu126"
+priority = "explicit"
 
 [build-system]
 requires = ["poetry-core"]
