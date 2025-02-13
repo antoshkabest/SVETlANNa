@@ -9,7 +9,7 @@ authors = [
     {name="Denis I. Sakhno", email="denis.sakhno@metalab.ifmo.ru"},
     {name="Semen S. Chugunov", email="semen.chugunov@metalab.ifmo.ru"}
 ]
-license = { text = "MPL-2.0", file = "LICENSE" }
+license = { file = "LICENSE" }
 readme = "README.md"
 requires-python = "^3.11,<3.12"
 dependencies = [
@@ -19,19 +19,15 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-cpu = [
-    "torch (==2.6.0+cpu)",
-]
-cuda = [
-    "torch (==2.6.0+cu126)",
-]
-
-
+torch-default = ['torch']
+cpu = ['torch']
+cuda = ['torch']
 
 [tool.poetry.dependencies]
 torch = [
+    { markers = "extra != 'cpu' and extra != 'cuda'", source = "PyPI"},
     { markers = "extra == 'cpu' and extra != 'cuda'", source = "pytorch-cpu"},
-    { markers = "extra == 'cuda' and extra != 'cpu'", source = "pytorch-cuda"},
+    { markers = "extra == 'cuda' and extra != 'cpu'", source = "pytorch-cuda"}
  ]
 
 

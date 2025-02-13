@@ -7,7 +7,7 @@ Open source library for simulation and engineering of diffractive neural network
 ## poetry
 To init the project and install all dependencies use
 ```
-poetry install
+poetry install -E torch-default
 ```
 
 To add package
