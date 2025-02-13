@@ -15,21 +15,8 @@ requires-python = "^3.11,<3.12"
 dependencies = [
     "numpy<2.0",
     "matplotlib<3.9.2",
-    "torchvision>=0.21.0",
+    "anywidget (>=0.9.13,<0.10.0)"
 ]
-
-[project.optional-dependencies]
-torch-default = ['torch']
-cpu = ['torch']
-cuda = ['torch']
-
-[tool.poetry.dependencies]
-torch = [
-    { markers = "extra != 'cpu' and extra != 'cuda'", source = "PyPI"},
-    { markers = "extra == 'cpu' and extra != 'cuda'", source = "pytorch-cpu"},
-    { markers = "extra == 'cuda' and extra != 'cpu'", source = "pytorch-cuda"}
- ]
-
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"
@@ -41,7 +28,7 @@ sphinx-rtd-theme = "^3.0.1"
 sphinx-autodoc-typehints = "^2.5.0"
 pytest-cov = "^6.0.0"
 lightpipes = "^2.1.5"
-torchmetrics = "^1.6.0"
+
 
 [[tool.poetry.source]]
 name = "pytorch-cpu"
