@@ -199,20 +199,22 @@ def test_set_debug_logging(input, output, capfd, caplog):
         "   <class 'torch.nn.modules.module.Module'>"
     )
     expected_output_2 = (
-        "Parameter of ElementLike(\n"
+        "Module of ElementLike(\n"
         "  (a): Module()\n"
         ") was registered with name b_svtlnn_inner_parameter:\n"
-        "   <class 'torch.nn.parameter.Parameter'> shape=torch.Size([]), dtype=torch.float32, device=cpu"
+        "   <class 'svetlanna.parameters.InnerParameterStorageModule'>"
     )
     expected_output_3 = (
         "Buffer of ElementLike(\n"
         "  (a): Module()\n"
+        "  (b_svtlnn_inner_parameter): InnerParameterStorageModule()\n"
         ") was registered with name c:\n"
         "   <class 'torch.Tensor'> shape=torch.Size([]), dtype=torch.float32, device=cpu"
     )
     expected_output_4 = (
         "The forward method of ElementLike(\n"
         "  (a): Module()\n"
+        "  (b_svtlnn_inner_parameter): InnerParameterStorageModule()\n"
         ") was computed"
     )
     for i, _input in enumerate(input):
