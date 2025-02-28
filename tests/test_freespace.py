@@ -4,7 +4,7 @@ import torch
 from svetlanna import elements
 from svetlanna import SimulationParameters
 from svetlanna import Wavefront
-torch.set_default_dtype(torch.float64)
+
 
 parameters = [
     "ox_size",
@@ -108,11 +108,10 @@ def test_gaussian_beam_propagation(
     dx = ox_size / ox_nodes
     dy = oy_size / oy_nodes
 
-    if type(wavelength_test) is float:
+    if not isinstance(wavelength_test, torch.Tensor):
         wave_number = 2 * torch.pi / wavelength_test
         rayleigh_range = torch.pi * (waist_radius_test**2) / wavelength_test
     else:
-
         rayleigh_range = torch.pi * (waist_radius_test**2) / wavelength_test[..., None, None]   # noqa: E501
         wave_number = 2 * torch.pi / wavelength_test[..., None, None]
 
@@ -156,11 +155,11 @@ def test_gaussian_beam_propagation(
     # field on the screen by using Fresnel propagation method
     field_end_fresnel = elements.FreeSpace(
         simulation_parameters=params, distance=distance_end, method='fresnel'
-    ).forward(input_field=field_gb_start)
+    )(field_gb_start)
     # field on the screen by using angular spectrum method
     field_end_as = elements.FreeSpace(
         simulation_parameters=params, distance=distance_end, method='AS'
-    ).forward(input_field=field_gb_start)
+    )(field_gb_start)
 
     intensity_output_fresnel = field_end_fresnel.intensity
     intensity_output_as = field_end_as.intensity
@@ -281,11 +280,11 @@ def test_gaussian_beam_fwhm(
     # field on the screen by using Fresnel propagation method
     field_end_fresnel = elements.FreeSpace(
         simulation_parameters=params, distance=distance, method='fresnel'
-    ).forward(input_field=field_gb_start)
+    )(field_gb_start)
     # field on the screen by using angular spectrum method
     field_end_as = elements.FreeSpace(
         simulation_parameters=params, distance=distance, method='AS'
-    ).forward(input_field=field_gb_start)
+    )(field_gb_start)
 
     fwhm_x_as, fwhm_y_as = field_end_as.fwhm(simulation_parameters=params)
     fwhm_x_fresnel, fwhm_y_fresnel = field_end_fresnel.fwhm(
@@ -295,7 +294,9 @@ def test_gaussian_beam_fwhm(
     fwhm_analytical = torch.sqrt(
         2. * torch.log(torch.tensor([2.]))
     ) * waist_radius_test * torch.sqrt(
-        torch.tensor([1.]) + (distance / (torch.pi * waist_radius_test**2 / wavelength_test))**2
+        torch.tensor([1.]) + (
+            distance / (torch.pi * waist_radius_test**2 / wavelength_test)
+        )**2
     )
 
     relative_error_x_as = torch.abs(
@@ -395,11 +396,11 @@ def test_gaussian_beam_phase_profile(
     # field on the screen by using Fresnel propagation method
     field_end_fresnel = elements.FreeSpace(
         simulation_parameters=params, distance=distance, method='fresnel'
-    ).forward(input_field=field_gb_start)
+    )(field_gb_start)
     # field on the screen by using angular spectrum method
     field_end_as = elements.FreeSpace(
         simulation_parameters=params, distance=distance, method='AS'
-    ).forward(input_field=field_gb_start)
+    )(field_gb_start)
 
     total_field = Wavefront.gaussian_beam(
         simulation_parameters=params,

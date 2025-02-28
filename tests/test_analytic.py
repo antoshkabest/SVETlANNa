@@ -1,5 +1,6 @@
 import pytest
 import torch
+import numpy as np
 
 from svetlanna import elements
 from svetlanna import SimulationParameters
@@ -7,7 +8,6 @@ from svetlanna import Wavefront
 
 from examples import analytical_solutions as anso
 
-torch.set_default_dtype(torch.float64)
 
 square_parameters = [
     "ox_size",
@@ -55,7 +55,7 @@ square_parameters = [
             8,  # oy_size, mm
             1200,   # ox_nodes
             1300,   # oy_nodes
-            torch.linspace(330 * 1e-6, 660 * 1e-6, 5),  # wavelength_test tensor, mm    # noqa: E501
+            torch.linspace(330 * 1e-6, 660 * 1e-6, 5, dtype=torch.float64),  # wavelength_test tensor, mm    # noqa: E501
             600,    # distance_test, mm
             2,  # width_test, mm
             2,  # height_test, mm
@@ -67,7 +67,7 @@ square_parameters = [
             8,  # oy_size, mm
             1200,   # ox_nodes
             1300,   # oy_nodes
-            torch.linspace(330 * 1e-6, 660 * 1e-6, 5),  # wavelength_test tensor, mm    # noqa: E501
+            torch.linspace(330 * 1e-6, 660 * 1e-6, 5, dtype=torch.float64),  # wavelength_test tensor, mm    # noqa: E501
             600,    # distance_test, mm
             4,  # width_test, mm
             2,  # height_test, mm
@@ -117,8 +117,12 @@ def test_rectangle_fresnel(
 
     params = SimulationParameters(
         {
-            'W': torch.linspace(-ox_size/2, ox_size/2, ox_nodes),
-            'H': torch.linspace(-oy_size/2, oy_size/2, oy_nodes),
+            'W': torch.linspace(
+                -ox_size/2, ox_size/2, ox_nodes, dtype=torch.float64
+            ),
+            'H': torch.linspace(
+                -oy_size/2, oy_size/2, oy_nodes, dtype=torch.float64
+            ),
             'wavelength': wavelength_test
         }
     )
@@ -137,20 +141,20 @@ def test_rectangle_fresnel(
         simulation_parameters=params,
         height=height_test,
         width=width_test
-    ).forward(input_field=incident_field)
+    )(incident_field)
 
     # field on the screen by using Fresnel propagation method
     output_field_fresnel = elements.FreeSpace(
         simulation_parameters=params,
         distance=distance_test,
         method='fresnel'
-        ).forward(input_field=transmission_field)
+        )(transmission_field)
     # field on the screen by using Angular Spectrum method
     output_field_as = elements.FreeSpace(
         simulation_parameters=params,
         distance=distance_test,
         method='AS'
-        ).forward(input_field=transmission_field)
+        )(transmission_field)
 
     # intensity distribution on the screen by using Fresnel propagation method
     intensity_output_fresnel = output_field_fresnel.intensity
@@ -169,10 +173,8 @@ def test_rectangle_fresnel(
         wavelength=wavelength_test
     ).intensity()
 
-    if type(wavelength_test) is float:
+    if isinstance(intensity_analytic, np.ndarray):
         intensity_analytic = torch.from_numpy(intensity_analytic)
-    else:
-        intensity_analytic = intensity_analytic.detach()
 
     energy_analytic = torch.sum(intensity_analytic, dim=(-2, -1)) * dx * dy
     energy_numeric_fresnel = torch.sum(

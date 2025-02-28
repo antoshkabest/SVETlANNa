@@ -15,6 +15,6 @@ __all__ = [
     'ThinLens',
     'SpatialLightModulator',
     'DiffractiveLayer',
-    'NonlinearElement'
+    'NonlinearElement',
     'FunctionModule'
 ]

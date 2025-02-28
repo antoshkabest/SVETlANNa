@@ -1,5 +1,5 @@
 import torch
-from typing import Callable, Dict
+from typing import Callable, Dict, TYPE_CHECKING
 from .element import Element
 from ..simulation_parameters import SimulationParameters
 from ..wavefront import Wavefront
@@ -9,20 +9,18 @@ from ..wavefront import Wavefront
 class FunctionModule(torch.nn.Module):
     """A class for transforming an arbitrary function with multiple parameters.
     Allows training function parameters
-
-    Parameters
-    ----------
-    torch : _type_
-        _description_
     """
-    def __init__(self, function: Callable, function_parameters: Dict) -> None:
+    def __init__(
+        self, function: Callable[[torch.Tensor], torch.Tensor],
+        function_parameters: Dict | None
+    ) -> None:
         """Constructor method
 
         Parameters
         ----------
-        function : Callable
+        function : Callable[[torch.Tensor], torch.Tensor]
             Arbitrary function with several parameters
-        function_parameters : Dict
+        function_parameters : Dict | None
             Parameters of the function
         """
         super(FunctionModule, self).__init__()
@@ -39,43 +37,44 @@ class FunctionModule(torch.nn.Module):
 
     def forward(
         self,
-        function_argument: float | torch.Tensor
-    ) -> Callable:
+        function_argument: torch.Tensor
+    ) -> torch.Tensor:
         """forward method for a class inherited from torch.nn.Module
 
         Parameters
         ----------
-        function_argument : float | torch.Tensor
+        function_argument : torch.Tensor
             Argument of the function
 
         Returns
         -------
-        Callable
+        torch.Tensor
             Function with trainable parameters
         """
-
         if self.function_parameters:
             return self.function(function_argument, **self.function_parameters)
         else:
             return self.function(function_argument)
 
+    if TYPE_CHECKING:
+        def __call__(
+            self,
+            function_argument: torch.Tensor
+        ) -> torch.Tensor:
+            ...
+
 
 class NonlinearElement(Element):
-    """A class representing a nonlinear optical element with a given intensity
+    """A class representing a nonlinear optical element with a given amplitude
     response function. Preserves the phase distribution of the incident
     wavefront
-
-    Parameters
-    ----------
-    Element : _type_
-        _description_
     """
 
     def __init__(
         self,
         simulation_parameters: SimulationParameters,
         response_function: Callable[[torch.Tensor], torch.Tensor],
-        response_parameters: Dict = None
+        response_parameters: Dict | None = None
     ):
         """Constructor method
 
@@ -97,13 +96,13 @@ class NonlinearElement(Element):
             response_parameters
         )
 
-    def forward(self, input_field: Wavefront) -> Wavefront:
+    def forward(self, incident_wavefront: Wavefront) -> Wavefront:
         """Method calculating the wavefront after passing a nonlinear optical
         element
 
         Parameters
         ----------
-        input_field : Wavefront
+        incident_wavefront : Wavefront
             Wavefront before the nonlinear optical element
 
         Returns
@@ -111,12 +110,12 @@ class NonlinearElement(Element):
         Wavefront
             Wavefront passing through a nonlinear optical element
         """
-        transformed_intensity = self.response_function.forward(
-            input_field.intensity
+        transformed_amplitude = self.response_function(
+            torch.abs(incident_wavefront)
         )
         # preserve the phase of the incident wavefront
-        phase = input_field.phase
-
+        # phase = incident_wavefront / torch.abs(incident_wavefront)
+        phase = torch.exp(1j * incident_wavefront.phase)
         return Wavefront(
-            torch.sqrt(transformed_intensity) * torch.exp(1j * phase)
+            transformed_amplitude * phase
         )

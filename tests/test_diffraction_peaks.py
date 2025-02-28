@@ -8,7 +8,7 @@ from svetlanna import Wavefront
 
 from scipy.optimize import curve_fit
 from scipy.optimize import minimize_scalar
-torch.set_default_dtype(torch.float64)
+
 
 parameters = [
     "ox_size",
@@ -133,7 +133,7 @@ def test_diffraction_peaks(
         width=width
     )
 
-    field_after_aperture = rectangular_aperture.forward(input_field=beam)
+    field_after_aperture = rectangular_aperture(beam)
 
     fs = elements.FreeSpace(
         simulation_parameters=params, distance=distance, method='AS'
@@ -144,7 +144,7 @@ def test_diffraction_peaks(
 
     amplitude_1d = np.sqrt(intensity_output.detach().numpy())[int(oy_nodes/2)]
 
-    def intensity_analytic(coordinates: torch.tensor) -> np.array:
+    def intensity_analytic(coordinates: torch.Tensor) -> np.ndarray:
         phi = np.arctan(coordinates / distance)
         u = np.pi / wavelength_test * width * np.sin(phi)
         return (np.sin(u) / u)**2 * intensity_output[int(oy_nodes/2), int(ox_nodes/2)]   # noqa: E501

@@ -5,6 +5,8 @@ from ..simulation_parameters import SimulationParameters
 from ..parameters import OptimizableFloat
 from ..wavefront import Wavefront, mul
 from ..axes_math import tensor_dot
+from typing import Iterable
+from ..specs import PrettyReprRepr, ParameterSpecs
 
 
 class ThinLens(Element):
@@ -43,7 +45,7 @@ class ThinLens(Element):
         # Compute wave_number as a tensor
         wave_number, axes = tensor_dot(
             2 * torch.pi / self.simulation_parameters.axes.wavelength,
-            torch.tensor([[1]]),
+            torch.tensor([[1]], device=self.simulation_parameters.device),
             'wavelength',
             ('H', 'W')
         )  # shape: ('wavelength', 1, 1) or (1, 1)
@@ -100,7 +102,7 @@ class ThinLens(Element):
 
         return self.transmission_function
 
-    def forward(self, input_field: Wavefront) -> Wavefront:
+    def forward(self, incident_wavefront: Wavefront) -> Wavefront:
         """Calculates the field after propagation through the thin lens.
 
         Parameters
@@ -115,13 +117,13 @@ class ThinLens(Element):
         """
 
         return mul(
-            input_field,
+            incident_wavefront,
             self.transmission_function,
             self._calc_axes,
             self.simulation_parameters
         )
 
-    def reverse(self, transmission_field: Wavefront) -> Wavefront:
+    def reverse(self, transmission_wavefront: Wavefront) -> Wavefront:
         """Calculates the field after passing through the lens during
         back propagation.
 
@@ -138,8 +140,22 @@ class ThinLens(Element):
             This corresponds to the incident field in forward propagation.
         """
         return mul(
-            transmission_field,
+            transmission_wavefront,
             torch.conj(self.transmission_function),
             self._calc_axes,
             self.simulation_parameters
         )
+
+    def to_specs(self) -> Iterable[ParameterSpecs]:
+        return [
+            ParameterSpecs(
+                'focal_length', [
+                    PrettyReprRepr(self.focal_length),
+                ]
+            ),
+            ParameterSpecs(
+                'radius', [
+                    PrettyReprRepr(self.radius)
+                ]
+            )
+        ]

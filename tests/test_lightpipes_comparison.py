@@ -6,7 +6,6 @@ import svetlanna as sv
 
 from svetlanna import elements
 
-torch.set_default_dtype(torch.float64)
 
 parameters = [
     "ox_size",
@@ -70,17 +69,20 @@ def test_circular_aperture(
     # ----------------------------------
     #   SVETlANNa fields calculations
     # ----------------------------------
-    torch.set_default_dtype(torch.float64)
     oy_size = ox_size
     oy_nodes = ox_nodes
-    x_length = torch.linspace(-ox_size / 2, ox_size / 2, ox_nodes)
-    y_length = torch.linspace(-oy_size / 2, oy_size / 2, oy_nodes)
+    x_length = torch.linspace(
+        -ox_size / 2, ox_size / 2, ox_nodes, dtype=torch.float64
+    )
+    y_length = torch.linspace(
+        -oy_size / 2, oy_size / 2, oy_nodes, dtype=torch.float64
+    )
 
     simulation_parameters = sv.SimulationParameters(
         axes={
             'W': x_length,
             'H': y_length,
-            'wavelength': wavelength
+            'wavelength': torch.tensor(wavelength, dtype=torch.float64)
         }
     )
     # elements' definitions
@@ -106,7 +108,7 @@ def test_circular_aperture(
     # field calculations
     G = sv.Wavefront.plane_wave(simulation_parameters)
     G = aperture(G)
-    G = fs1(input_field=G)
+    G = fs1(G)
     field_before_lens_sv = G
     G = lens(G)
     G = fs2(G)
