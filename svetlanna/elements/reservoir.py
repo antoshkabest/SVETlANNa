@@ -18,27 +18,29 @@ class SimpleReservoir(Element):
     ) -> None:
         """Reservoir element.
         The main idea is explained in https://doi.org/10.1364/OE.20.022783.
-        The formula is following
+        The governing formula is:
         $$
         x_{out}[i] = F_{NL}(\beta x_{in}[i] + \alpha F_{D}(x_{out}[i-\tau]))
         $$
-        where $F_{NL}$ is nonlinear element, $F_{D}$ is delay element,
-        $\alpha$ is feedback_gain, $\beta$ is input_gain, $\tau$ is delay.
+        where $F_{NL}$ is the nonlinear element, $F_{D}$ is the delay element,
+        $\alpha$ is the feedback_gain, $\beta$ is the input_gain,
+        $\tau$ is the delay in samples.
 
         Parameters
         ----------
         simulation_parameters : SimulationParameters
             An instance describing the optical system's simulation parameters.
         nonlinear_element : Element | LinearOpticalSetup
-            Nonlinear element the light goes through.
+            The nonlinear element the light passes through.
         delay_element : Element | LinearOpticalSetup
-            Delay line element.
+            The delay line element.
         feedback_gain : OptimizableFloat
-            The feedback (delay line) gain $\alpha$.
+            The feedback (delay line) gain ($\alpha$).
         input_gain : OptimizableFloat
             The input gain $\beta$
         delay : int
-            The time in samples light goes through delay line.
+            The delay time, measured in samples,
+            that the light spends in the delay line.
         """
         super().__init__(simulation_parameters)
 
@@ -59,29 +61,31 @@ class SimpleReservoir(Element):
         self.feedback_queue: deque[Wavefront] = deque(maxlen=self.delay)
 
     def append_feedback_queue(self, field: Wavefront):
-        """Append feedback line queue with wavefront (add element to the end).
+        """Append a new wavefront to the feedback queue.
 
         Parameters
         ----------
         field : Wavefront
-            New wavefront.
+            The new wavefront to be added to the end of the queue.
         """
         self.feedback_queue.append(field)
 
     def pop_feedback_queue(self) -> None | Wavefront:
-        """Get the first element from feedback line queue if possible.
+        """Retrieve and remove the first element from the feedback queue
+        if available.
 
         Parameters
         ----------
         field : Wavefront
-            New wavefront.
+            The first wavefront in the queue, or None if the queue is empty
+            or not full yet.
         """
         if len(self.feedback_queue) < self.delay:
             return None
         return self.feedback_queue.popleft()
 
     def drop_feedback_queue(self) -> None:
-        """Clear the feedback line queue.
+        """Clear all elements from the feedback queue.
         """
         self.feedback_queue.clear()
 
