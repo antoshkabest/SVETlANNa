@@ -1,4 +1,4 @@
-from typing import Iterable, Literal, Union
+from typing import Any, Iterable, Literal, Union
 from .elements import Element
 from .simulation_parameters import SimulationParameters
 from torch import nn
@@ -75,6 +75,9 @@ class LinearOpticalSetup:
             A wavefront after the last element of
             the network (output of the network).
         """
+        return self.net(input_wavefront)
+
+    def __call__(self, input_wavefront: Tensor) -> Tensor:
         return self.net(input_wavefront)
 
     def stepwise_forward(self, input_wavefront: Tensor):

@@ -3,6 +3,10 @@ from ..simulation_parameters import SimulationParameters
 from ..wavefront import Wavefront
 from .element import Element
 from collections import deque
+from typing import TYPE_CHECKING, Union
+
+if TYPE_CHECKING:
+    from svetlanna.setup import LinearOpticalSetup
 
 
 class SimpleReservoir(Element):
@@ -10,8 +14,8 @@ class SimpleReservoir(Element):
     def __init__(
         self,
         simulation_parameters: SimulationParameters,
-        nonlinear_element: Element,
-        delay_element: Element,
+        nonlinear_element: Union[Element, 'LinearOpticalSetup'],
+        delay_element: Union[Element, 'LinearOpticalSetup'],
         feedback_gain: OptimizableFloat,
         input_gain: OptimizableFloat,
         delay: int
