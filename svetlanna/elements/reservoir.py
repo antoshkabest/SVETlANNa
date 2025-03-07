@@ -29,6 +29,8 @@ class SimpleReservoir(Element):
         where $F_{NL}$ is the nonlinear element, $F_{D}$ is the delay element,
         $\alpha$ is the feedback_gain, $\beta$ is the input_gain,
         $\tau$ is the delay in samples.
+        The user should match the delay in samples with the actual
+        light propagation time in $F_{D}$.
 
         Parameters
         ----------
