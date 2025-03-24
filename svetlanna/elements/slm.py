@@ -141,13 +141,17 @@ class SpatialLightModulator(Element):
 
         _phase_mask = _aperture.clone()
 
-        quantized_mask = 2 * torch.pi * (
-            self.step_function(
-                (
-                    (self.number_of_levels * _resized_mask) % (2 * torch.pi)
-                ) / (2 * torch.pi)
-            ) + (self.number_of_levels * _resized_mask) // (2 * torch.pi)
-        ) / self.number_of_levels
+        # NON-DIFFERENTIABLE!
+        # quantized_mask = 2 * torch.pi * (
+        #     self.step_function(
+        #         (
+        #             (self.number_of_levels * _resized_mask) % (2 * torch.pi)
+        #         ) / (2 * torch.pi)
+        #     ) + (self.number_of_levels * _resized_mask) // (2 * torch.pi)
+        # ) / self.number_of_levels
+
+        # FIXED
+        quantized_mask = self.step_function(_resized_mask)
 
         _phase_mask[indices] = quantized_mask
 
