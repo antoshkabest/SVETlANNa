@@ -355,7 +355,10 @@ class Clerk(Generic[ConditionsType]):
         self._last_checkpoint_index = index
 
     def load_checkpoint(
-        self, index: str | int, targets: dict[str, StatefulTorchClass] | None = None
+        self,
+        index: str | int,
+        targets: dict[str, StatefulTorchClass] | None = None,
+        weights_only: bool = True
     ) -> object | None:
         """Load the checkpoint with a specific index and apply state dicts to
         checkpoint targets. If the targets are not provided, the checkpoint
@@ -372,6 +375,8 @@ class Clerk(Generic[ConditionsType]):
         targets : dict[str, StatefulTorchClass] | None, optional
             Targets with unique keys, by default None.
             See the `set_checkpoint_targets` method.
+        weights_only : bool
+            See `torch.load` function docs, by default True.
 
         Returns
         -------
@@ -380,7 +385,7 @@ class Clerk(Generic[ConditionsType]):
         """
 
         path = self._path_checkpoint(index)
-        data = torch.load(path)
+        data = torch.load(path, weights_only=weights_only)
 
         metadata = data.get(CHECKPOINT_METADATA_KEY)
 
