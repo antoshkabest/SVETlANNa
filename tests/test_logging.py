@@ -93,7 +93,7 @@ def test_forward_logging_hook(input, output, capfd):
 
     forward_logging_hook(element, input, output)
 
-    expected_out = 'The forward method of ElementLike() was computed'
+    expected_out = 'The forward method of ElementLike was computed'
     input = input if isinstance(input, tuple) else (input,)
     output = output if isinstance(output, tuple) else (output,)
     for i, _input in enumerate(input):
@@ -144,7 +144,7 @@ def test_register_logging_hook(input, type_, capfd):
 
     register_logging_hook(element, 'test_name', input, type_)
 
-    expected_out = f'{type_} of {element} was registered with name test_name:'
+    expected_out = f'{type_} of {element._get_name()} was registered with name test_name:'
     expected_out += f'\n   {type(input)}'
 
     out, _ = capfd.readouterr()  # read stdout
@@ -195,27 +195,19 @@ def test_set_debug_logging(input, output, capfd, caplog):
         element(*input)
 
     expected_output_1 = (
-        "Module of ElementLike() was registered with name a:\n"
+        "Module of ElementLike was registered with name a:\n"
         "   <class 'torch.nn.modules.module.Module'>"
     )
     expected_output_2 = (
-        "Module of ElementLike(\n"
-        "  (a): Module()\n"
-        ") was registered with name b_svtlnn_inner_parameter:\n"
+        "Module of ElementLike was registered with name b_svtlnn_inner_parameter:\n"
         "   <class 'svetlanna.parameters.InnerParameterStorageModule'>"
     )
     expected_output_3 = (
-        "Buffer of ElementLike(\n"
-        "  (a): Module()\n"
-        "  (b_svtlnn_inner_parameter): InnerParameterStorageModule()\n"
-        ") was registered with name c:\n"
+        "Buffer of ElementLike was registered with name c:\n"
         "   <class 'torch.Tensor'> shape=torch.Size([]), dtype=torch.float32, device=cpu"
     )
     expected_output_4 = (
-        "The forward method of ElementLike(\n"
-        "  (a): Module()\n"
-        "  (b_svtlnn_inner_parameter): InnerParameterStorageModule()\n"
-        ") was computed"
+        "The forward method of ElementLike was computed"
     )
     for i, _input in enumerate(input):
         expected_output_4 += f'\n   input {i}: {type(_input)}'

@@ -60,7 +60,7 @@ def forward_logging_hook(module, input, output) -> None:
         args_info += f'\n   output {i}: {agr_short_description(_output)}'
 
     log_message(
-        f'The forward method of {module} was computed{args_info}'
+        f'The forward method of {module._get_name()} was computed{args_info}'
     )
 
 
@@ -74,7 +74,7 @@ def register_logging_hook(
     value_info = f'\n   {agr_short_description(value)}'
 
     log_message(
-        f'{type} of {module} was registered with name {name}:{value_info}'
+        f'{type} of {module._get_name()} was registered with name {name}:{value_info}'
     )
 
 
