@@ -146,6 +146,8 @@ class Wavefront(torch.Tensor):
         simulation_parameters: SimulationParameters,
         waist_radius: float,
         distance: float = 0.,
+        dx: float = 0.,
+        dy: float = 0.,
     ) -> Self:
         """Generates the Gaussian beam.
 
@@ -157,6 +159,10 @@ class Wavefront(torch.Tensor):
             Waist radius of the beam
         distance : float, optional
             free wave propagation distance, by default 0.
+        dx : float, optional
+            Horizontal position of the beam center, by default 0.
+        dy : float, optional
+            Horizontal position of the beam center, by default 0.
 
         Returns
         -------
@@ -168,8 +174,8 @@ class Wavefront(torch.Tensor):
 
         rayleigh_range = torch.pi * (waist_radius**2) / simulation_parameters.axes.wavelength    # noqa: E501
 
-        x = simulation_parameters.axes.W[None, :]
-        y = simulation_parameters.axes.H[:, None]
+        x = simulation_parameters.axes.W[None, :] - dx
+        y = simulation_parameters.axes.H[:, None] - dy
         radial_distance_squared = x**2 + y**2
 
         hyperbolic_relation = waist_radius * (1 + (distance / rayleigh_range)**2)**(1/2)    # noqa: E501
