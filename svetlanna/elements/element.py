@@ -98,7 +98,7 @@ class Element(nn.Module, metaclass=ABCMeta):
                 element_name = subelement.subelement.__class__.__name__
                 # Write the element's name to the summary tag
                 stream.write(
-                    f'[{subelement.subelement_name}] <b>{element_name}</b>'
+                    f'[{subelement.subelement_type}] <b>{element_name}</b>'
                 )
 
                 # Close summary tag and open a new div for the subelement

@@ -418,18 +418,18 @@ class SubelementSpecs:
     """
     def __init__(
         self,
-        subelement_name: str,
+        subelement_type: str,
         subelement: 'Specsable'
     ):
         """
         Parameters
         ----------
-        subelement_name : str
-            human-readable name of the subelement.
+        subelement_type : str
+            human-readable type of the subelement.
         subelement : Specsable
             the subelement.
         """
-        self.subelement_name = subelement_name
+        self.subelement_type = subelement_type
         self.subelement = subelement
 
 

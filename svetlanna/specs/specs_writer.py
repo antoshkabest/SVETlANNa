@@ -242,16 +242,16 @@ class _ElementInTree:
     element: Specsable
     element_index: int
     children: list['_ElementInTree'] = field(default_factory=list)
-    subelement_name: str | None = None
+    subelement_type: str | None = None
 
     def create_copy(
-        self, subelement_name: str | None
+        self, subelement_type: str | None
     ) -> '_ElementInTree':
         return _ElementInTree(
             element=self.element,
             element_index=self.element_index,
             children=self.children,
-            subelement_name=subelement_name
+            subelement_type=subelement_type
         )
 
 
@@ -274,7 +274,7 @@ class _ElementsIterator:
             for element in specsables:
 
                 if isinstance(element, SubelementSpecs):
-                    element_name = element.subelement_name
+                    element_name = element.subelement_type
                     element = element.subelement
                 else:
                     element_name = None
@@ -283,7 +283,7 @@ class _ElementsIterator:
                 if element_in_tree := self._iterated.get(id(element)):
                     # The copy of the element in the tree is created
                     new_element_in_tree = element_in_tree.create_copy(
-                        subelement_name=element_name
+                        subelement_type=element_name
                     )
                     parent_children.append(new_element_in_tree)
                     continue
@@ -300,7 +300,7 @@ class _ElementsIterator:
                 element_in_tree = _ElementInTree(
                     element,
                     index,
-                    subelement_name=element_name
+                    subelement_type=element_name
                 )
                 self._iterated[id(element)] = element_in_tree
                 parent_children.append(element_in_tree)
@@ -322,8 +322,8 @@ def write_elements_tree_to_str(
         element_name = element.element.__class__.__name__
         indexed_name = f'({element.element_index}) {element_name}'
 
-        if element.subelement_name is not None:
-            stream.write(f'[{element.subelement_name}] ')
+        if element.subelement_type is not None:
+            stream.write(f'[{element.subelement_type}] ')
         stream.write(f'{indexed_name}\n')
 
         for subelement in element.children:
@@ -344,8 +344,8 @@ def write_elements_tree_to_markdown(
         element_name = element.element.__class__.__name__
         indexed_name = f'`({element.element_index}) {element_name}`'
 
-        if element.subelement_name is not None:
-            stream.write(f'[{element.subelement_name}] ')
+        if element.subelement_type is not None:
+            stream.write(f'[{element.subelement_type}] ')
         stream.write(f'{indexed_name}\n')
 
         for subelement in element.children:
