@@ -8,6 +8,7 @@ from io import StringIO
 from typing import Iterable, TypeVar, TYPE_CHECKING
 from ..parameters import ConstrainedParameter, Parameter
 from ..wavefront import Wavefront
+from warnings import warn
 
 
 INNER_PARAMETER_SUFFIX = '_svtlnn_inner_parameter'
@@ -18,32 +19,27 @@ _V = TypeVar('_V')
 
 class _BufferedValueContainer(tuple):
     """Internal class that marks buffered values.
-    It is used to prevent double __setattr__ call with the same value in
-    the pattern `self.x = self.make_buffer('x', x_value)`
+
+    It is used to prevent double __setattr__ calls with the same value in
+    patterns like `self.x = self.make_buffer('x', x_value)`.
+    Inheriting from tuple is used for performance reasons, so the `__slots__`.
+    This approach was identified by GPT as the fastest one.
     """
     __slots__ = ()
 
-    def __new__(cls, obj):
+    def __new__(cls, obj: Tensor | None):
         return super().__new__(cls, (obj,))
 
 
 # TODO: check docstring
 class Element(nn.Module, metaclass=ABCMeta):
-    """A class that describes each element of the system
-
-    Parameters
-    ----------
-    nn : _type_
-        _description_
-    metaclass : _type_, optional
-        _description_, by default ABCMeta
-    """
+    """A class that describes each element of the system"""
 
     def __init__(
         self,
         simulation_parameters: SimulationParameters
     ) -> None:
-        """Constructor method
+        """A class that describes each element of the system
 
         Parameters
         ----------
@@ -79,9 +75,18 @@ class Element(nn.Module, metaclass=ABCMeta):
     ) -> None:
 
         if isinstance(value, _BufferedValueContainer):
-            # In the case of pattern self.x = self.make_buffer('x', x_value)
-            # the attribute value is already set
-            return
+            # In the case of pattern `self.x = self.make_buffer('x', x_value)`
+            # the attribute value is already set, the __setattr__ is ignored
+            try:
+                # Check if a buffer with the given name is already registered
+                self.get_buffer(name)
+                return
+            except AttributeError:
+                warn(
+                    f"You set the attribute {name} with an object of "
+                    "internal type _BufferedValueContainer. "
+                    "Make sure this is the intended behavior."
+                )
 
         # BoundedParameter and Parameter are handled by pointing
         # auxiliary attribute on them with a name plus INNER_PARAMETER_SUFFIX
@@ -139,6 +144,8 @@ class Element(nn.Module, metaclass=ABCMeta):
             name, value, persistent=persistent
         )
 
+        # The instance of _BufferedValueContainer is returned
+        # to support `self.x = self.make_buffer('x', x_value)` pattern
         return _BufferedValueContainer(self.__getattr__(name))  # type: ignore
 
     def process_parameter(
