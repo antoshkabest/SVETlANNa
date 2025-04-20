@@ -255,7 +255,7 @@ class ImageRepr(StrRepresentation, MarkdownRepresentation, HTMLRepresentation):
             img_src = f"data:image/{self.format};base64, {encoded_image}"
 
             out.write(
-                f'\n<img class="spec-img" src="{img_src}"/>\n'
+                f'\n<img style="min-width:7rem;min-height:7rem;max-width:12rem;max-height:12rem;object-fit:contain;image-rendering:pixelated;" src="{img_src}"/>\n'
             )
 
 
