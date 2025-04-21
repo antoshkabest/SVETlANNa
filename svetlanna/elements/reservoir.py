@@ -5,6 +5,7 @@ from ..wavefront import Wavefront
 from .element import Element
 from collections import deque
 from typing import TYPE_CHECKING, Iterable, Union
+from ..visualization import ElementHTML, jinja_env
 
 if TYPE_CHECKING:
     from svetlanna.setup import LinearOpticalSetup
@@ -128,4 +129,15 @@ class SimpleReservoir(Element):
             )),
             SubelementSpecs('Nonlinear element', self.nonlinear_element),
             SubelementSpecs('Delay element', self.delay_element)
+        )
+
+    @staticmethod
+    def _widget_html_(
+        index: int,
+        name: str,
+        element_type: str | None,
+        subelements: list[ElementHTML]
+    ) -> str:
+        return jinja_env.get_template('widget_reservoir.html.jinja').render(
+            index=index, name=name, subelements=subelements
         )

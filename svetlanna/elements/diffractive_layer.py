@@ -5,6 +5,7 @@ from ..wavefront import Wavefront, mul
 from ..parameters import OptimizableTensor
 from typing import Iterable
 from ..specs import ImageRepr, PrettyReprRepr, ParameterSpecs
+from ..visualization import jinja_env, ElementHTML
 
 
 class DiffractiveLayer(Element):
@@ -100,3 +101,14 @@ class DiffractiveLayer(Element):
                 ]
             )
         ]
+
+    @staticmethod
+    def _widget_html_(
+        index: int,
+        name: str,
+        element_type: str | None,
+        subelements: list[ElementHTML]
+    ) -> str:
+        return jinja_env.get_template('widget_diffractive_layer.html.jinja').render(
+            index=index, name=name, subelements=subelements
+        )

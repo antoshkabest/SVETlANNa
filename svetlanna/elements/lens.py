@@ -7,6 +7,7 @@ from ..wavefront import Wavefront, mul
 from ..axes_math import tensor_dot
 from typing import Iterable
 from ..specs import PrettyReprRepr, ParameterSpecs
+from ..visualization import jinja_env, ElementHTML
 
 
 class ThinLens(Element):
@@ -159,3 +160,14 @@ class ThinLens(Element):
                 ]
             )
         ]
+
+    @staticmethod
+    def _widget_html_(
+        index: int,
+        name: str,
+        element_type: str | None,
+        subelements: list[ElementHTML]
+    ) -> str:
+        return jinja_env.get_template('widget_lens.html.jinja').render(
+            index=index, name=name, subelements=subelements
+        )

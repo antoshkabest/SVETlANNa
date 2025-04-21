@@ -4,6 +4,7 @@ from .specs import ParameterSpecs, SubelementSpecs
 from torch import nn
 from torch import Tensor
 from warnings import warn
+from .visualization import jinja_env, ElementHTML
 
 
 class LinearOpticalSetup(nn.Module):
@@ -115,4 +116,14 @@ class LinearOpticalSetup(nn.Module):
         return (
             SubelementSpecs(str(i), element) for i, element in enumerate(self.elements)
         )
+
+    @staticmethod
+    def _widget_html_(
+        index: int,
+        name: str,
+        element_type: str | None,
+        subelements: list[ElementHTML]
+    ) -> str:
+        return jinja_env.get_template('widget_linear_setup.html.jinja').render(
+            index=index, name=name, subelements=subelements
         )
