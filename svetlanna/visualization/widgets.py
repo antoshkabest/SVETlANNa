@@ -177,7 +177,7 @@ def show_structure(*specsable: Specsable):
         # Display HTML
         display(HTML(structure_html))
 
-    except ModuleNotFoundError:
+    except ImportError:
         warn("Currently only display via ipython is supported.")
 
 
@@ -423,9 +423,6 @@ def show_stepwise_forward(
         )
 
         return widget
-
-    except Exception as e:
-        raise e
 
     finally:
         # Remove forward hooks
