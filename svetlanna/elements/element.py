@@ -2,8 +2,8 @@ from abc import ABCMeta, abstractmethod
 from torch import nn
 from torch import Tensor
 from ..simulation_parameters import SimulationParameters
-from ..specs import PrettyReprRepr, ParameterSpecs
-from ..specs.specs_writer import write_specs_to_html
+from ..specs import PrettyReprRepr, ParameterSpecs, SubelementSpecs, Specsable
+from ..specs.specs_writer import write_specs_to_html, context_generator
 from io import StringIO
 from typing import Iterable, TypeVar, TYPE_CHECKING
 from ..parameters import ConstrainedParameter, Parameter
@@ -50,7 +50,7 @@ class Element(nn.Module, metaclass=ABCMeta):
 
         """Forward propagation through the optical element"""
 
-    def to_specs(self) -> Iterable[ParameterSpecs]:
+    def to_specs(self) -> Iterable[ParameterSpecs | SubelementSpecs]:
 
         """Create specs"""
 
@@ -75,7 +75,46 @@ class Element(nn.Module, metaclass=ABCMeta):
 
     def _repr_html_(self) -> str:
         stream = StringIO('')
-        write_specs_to_html(self, 0, '', stream)
+
+        def write_element_details(element: Specsable):
+            subelements: list[SubelementSpecs] = []
+            writer_context_generator = context_generator(
+                element=element,
+                element_index=0,
+                directory='',
+                subelements=subelements
+            )
+            # Write element's parameter specs to the stream
+            write_specs_to_html(element, 0, writer_context_generator, stream)
+
+            # Iterate over element's subelements (SubelementSpecs)
+            for subelement in subelements:
+                # Create details tag for the element and start summary tag
+                stream.write(
+                    '<details style="border: 1px solid gray;margin: 0.3rem 0">'
+                    '<summary style="font-family:monospace;'
+                    'background-color:#cff1f0;color:black;padding:0.3rem">'
+                )
+                element_name = subelement.subelement.__class__.__name__
+                # Write the element's name to the summary tag
+                stream.write(
+                    f'[{subelement.subelement_type}] <b>{element_name}</b>'
+                )
+
+                # Close summary tag and open a new div for the subelement
+                stream.write(
+                    '</summary>'
+                    '<div style="margin-left:2rem;margin-right: 0.3rem">'
+                )
+                # Repeat the process for the subelement
+                write_element_details(subelement.subelement)
+                # Close the div and the details tags
+                stream.write(
+                    '</div>'
+                    '</details>'
+                )
+
+        write_element_details(self)
         return stream.getvalue()
 
     def make_buffer(

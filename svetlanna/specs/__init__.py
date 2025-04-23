@@ -2,6 +2,7 @@ from .specs import Representation, StrRepresentation, MarkdownRepresentation
 from .specs import HTMLRepresentation
 from .specs import ReprRepr, ImageRepr, NpyFileRepr, PrettyReprRepr
 from .specs import ParameterSpecs, ParameterSaveContext
+from .specs import Specsable, SubelementSpecs
 
 
 __all__ = [
@@ -14,5 +15,7 @@ __all__ = [
     'NpyFileRepr',
     'PrettyReprRepr',
     'ParameterSpecs',
-    'ParameterSaveContext'
+    'ParameterSaveContext',
+    'Specsable',
+    'SubelementSpecs'
 ]

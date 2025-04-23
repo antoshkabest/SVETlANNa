@@ -1,17 +1,12 @@
-from typing import Iterable, TextIO, Protocol, TypeVar, Generic, Generator, Any
-from .specs import ParameterSpecs
+from typing import Iterable, TextIO, TypeVar, Generic, Generator, TypeAlias
+from .specs import SubelementSpecs, Specsable
 from .specs import ParameterSaveContext, Representation
 from .specs import StrRepresentation, MarkdownRepresentation
 from .specs import HTMLRepresentation
 from pathlib import Path
 import itertools
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from io import StringIO
-
-
-class Specsable(Protocol):
-    def to_specs(self) -> Iterable['ParameterSpecs']:
-        ...
 
 
 _T = TypeVar('_T')
@@ -31,11 +26,15 @@ class _WriterContext:
     context: ParameterSaveContext
 
 
-def _context_generator(
+_WriterContextGenerator: TypeAlias = Generator[_WriterContext, None, None]
+
+
+def context_generator(
     element: Specsable,
     element_index: int,
-    directory: str | Path
-) -> Generator[_WriterContext, Any, None]:
+    directory: str | Path,
+    subelements: list[SubelementSpecs]
+) -> _WriterContextGenerator:
     """Generate _WriterContext for the element
 
     Parameters
@@ -61,6 +60,11 @@ def _context_generator(
     repr_iterators: dict[str, list[Iterable[Representation]]] = {}
 
     for spec in element.to_specs():
+
+        if isinstance(spec, SubelementSpecs):
+            subelements.append(spec)
+            continue
+
         parameter_name = spec.parameter_name
         representations = spec.representations
 
@@ -97,14 +101,9 @@ def _context_generator(
 def write_specs_to_str(
     element: Specsable,
     element_index: int,
-    directory: str | Path,
+    writer_context_generator: _WriterContextGenerator,
     stream: TextIO,
 ):
-    writer_context_generator = _context_generator(
-        element,
-        element_index,
-        directory,
-    )
 
     # create and write header for the element
     element_name = element.__class__.__name__
@@ -159,14 +158,9 @@ def write_specs_to_str(
 def write_specs_to_markdown(
     element: Specsable,
     element_index: int,
-    directory: str | Path,
+    writer_context_generator: _WriterContextGenerator,
     stream: TextIO,
 ):
-    writer_context_generator = _context_generator(
-        element,
-        element_index,
-        directory,
-    )
 
     # create and write header for the element
     element_name = element.__class__.__name__
@@ -206,15 +200,9 @@ def write_specs_to_markdown(
 def write_specs_to_html(
     element: Specsable,
     element_index: int,
-    directory: str | Path,
+    writer_context_generator: _WriterContextGenerator,
     stream: TextIO,
 ):
-
-    writer_context_generator = _context_generator(
-        element,
-        element_index,
-        directory,
-    )
 
     s = '<div style="font-family:monospace;">'
 
@@ -249,6 +237,143 @@ def write_specs_to_html(
     stream.write(s)
 
 
+@dataclass(frozen=True, slots=True)
+class _ElementInTree:
+    element: Specsable
+    element_index: int
+    children: list['_ElementInTree'] = field(default_factory=list)
+    subelement_type: str | None = None
+
+    def create_copy(
+        self, subelement_type: str | None
+    ) -> '_ElementInTree':
+        return _ElementInTree(
+            element=self.element,
+            element_index=self.element_index,
+            children=self.children,
+            subelement_type=subelement_type
+        )
+
+
+class _ElementsIterator:
+    def __init__(self, *iterables: Specsable, directory: str | Path) -> None:
+        self.iterables = tuple(iterables)
+        self.directory = directory
+        self._iterated: dict[int, _ElementInTree] = {}
+        self._tree: list[_ElementInTree] | None = None
+
+    def __iter__(
+        self
+    ) -> Generator[tuple[int, Specsable, _WriterContextGenerator], None, None]:
+
+        def f(
+            specsables: Iterable[Specsable | SubelementSpecs],
+            parent_children: list[_ElementInTree]
+        ):
+
+            for element in specsables:
+
+                if isinstance(element, SubelementSpecs):
+                    element_name = element.subelement_type
+                    element = element.subelement
+                else:
+                    element_name = None
+
+                # The element specs should be written only once
+                if element_in_tree := self._iterated.get(id(element)):
+                    # The copy of the element in the tree is created
+                    new_element_in_tree = element_in_tree.create_copy(
+                        subelement_type=element_name
+                    )
+                    parent_children.append(new_element_in_tree)
+                    continue
+
+                subelements: list[SubelementSpecs] = []
+                index = len(self._iterated)
+                writer_context_generator = context_generator(
+                    element, index, self.directory, subelements
+                )  # Subelements list is appended inside the generator
+
+                yield index, element, writer_context_generator
+
+                # Create a new tree element
+                element_in_tree = _ElementInTree(
+                    element,
+                    index,
+                    subelement_type=element_name
+                )
+                self._iterated[id(element)] = element_in_tree
+                parent_children.append(element_in_tree)
+
+                # Repeat the process for all subelements of the tree element
+                yield from f(subelements, element_in_tree.children)
+
+        self._iterated = {}
+        self._tree = []
+        yield from f(self.iterables, self._tree)
+
+    @property
+    def tree(self) -> list[_ElementInTree]:
+        """Get a tree of all elements iterated
+
+        Returns
+        -------
+        list[_ElementInTree]
+            Elements tree.
+        """
+        if self._tree is None:
+            # Iterate to build a tree if not already exists
+            for _, _, i in self:
+                for _ in i:
+                    pass
+            return self.tree
+        return self._tree
+
+
+def write_elements_tree_to_str(
+    tree: list[_ElementInTree],
+    stream: TextIO,
+):
+    stream.write('\n\nTree:\n')
+
+    def _write_element(tree_level: int, element: _ElementInTree):
+        stream.write(' ' * (8 * tree_level))
+        element_name = element.element.__class__.__name__
+        indexed_name = f'({element.element_index}) {element_name}'
+
+        if element.subelement_type is not None:
+            stream.write(f'[{element.subelement_type}] ')
+        stream.write(f'{indexed_name}\n')
+
+        for subelement in element.children:
+            _write_element(tree_level + 1, subelement)
+
+    for element in tree:
+        _write_element(0, element)
+
+
+def write_elements_tree_to_markdown(
+    tree: list[_ElementInTree],
+    stream: TextIO,
+):
+    stream.write('\n\n# Tree:\n')
+
+    def _write_element(tree_level: int, element: _ElementInTree):
+        stream.write(' ' * (4 * tree_level) + '* ')
+        element_name = element.element.__class__.__name__
+        indexed_name = f'`({element.element_index}) {element_name}`'
+
+        if element.subelement_type is not None:
+            stream.write(f'[{element.subelement_type}] ')
+        stream.write(f'{indexed_name}\n')
+
+        for subelement in element.children:
+            _write_element(tree_level + 1, subelement)
+
+    for element in tree:
+        _write_element(0, element)
+
+
 def write_specs(
     *iterables: Specsable,
     filename: str = 'specs.txt',
@@ -257,25 +382,37 @@ def write_specs(
     Path.mkdir(Path(directory), parents=True, exist_ok=True)
     path = Path(directory, filename)
 
+    elements = _ElementsIterator(*iterables, directory=directory)
+
     with open(path, 'w') as file:
         if filename.endswith('.txt'):
-            for elemennt_index, element in enumerate(iterables):
+            for elemennt_index, element, writer_context_generator in elements:
                 write_specs_to_str(
                     element=element,
                     element_index=elemennt_index,
-                    directory=directory,
+                    writer_context_generator=writer_context_generator,
                     stream=file
                 )
+            write_elements_tree_to_str(
+                tree=elements.tree,
+                stream=file
+            )
         elif filename.endswith('.md'):
-            for elemennt_index, element in enumerate(iterables):
+            for elemennt_index, element, writer_context_generator in elements:
                 write_specs_to_markdown(
                     element=element,
                     element_index=elemennt_index,
-                    directory=directory,
+                    writer_context_generator=writer_context_generator,
                     stream=file
                 )
+            write_elements_tree_to_markdown(
+                tree=elements.tree,
+                stream=file
+            )
         else:
             raise ValueError(
                 "Unknown file extension. ' \
                 'Filename should end with '.md' or '.txt'."
             )
+
+    return elements

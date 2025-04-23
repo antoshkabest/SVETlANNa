@@ -1,4 +1,5 @@
 from typing import Iterable, Any, Generator, TextIO, Generic, TypeVar, Literal
+from typing import Protocol
 from abc import ABCMeta, abstractmethod
 from io import BufferedWriter, BytesIO
 from contextlib import contextmanager
@@ -8,7 +9,6 @@ from numpy.typing import ArrayLike
 import numpy as np
 import torch
 import numbers
-from ..parameters import ConstrainedParameter
 import base64
 
 
@@ -255,7 +255,7 @@ class ImageRepr(StrRepresentation, MarkdownRepresentation, HTMLRepresentation):
             img_src = f"data:image/{self.format};base64, {encoded_image}"
 
             out.write(
-                f'\n<img class="spec-img" src="{img_src}"/>\n'
+                f'\n<img style="min-width:7rem;min-height:7rem;max-width:12rem;max-height:12rem;object-fit:contain;image-rendering:pixelated;" src="{img_src}"/>\n'
             )
 
 
@@ -359,16 +359,22 @@ class PrettyReprRepr(ReprRepr, HTMLRepresentation):
             # If the value is scalar, it can be directly printed out
             if len(shape) == 0:
 
-                # Print minimum and maximum values for ConstrainedParameter
-                if isinstance(self.value, ConstrainedParameter):
+                try:
+                    from svetlanna import ConstrainedParameter
 
-                    min_val = self.value.min_value.item()
-                    max_val = self.value.max_value.item()
+                    # Print minimum and maximum values for ConstrainedParameter
+                    if isinstance(self.value, ConstrainedParameter):
 
-                    s = f'{class_name}\n'
-                    s += f'  ┏ min value {min_val}{units_suffix}\n'
-                    s += f'  ┗ max value {max_val}{units_suffix}\n'
-                    return s + f'{self.value.item()}{units_suffix}'
+                        min_val = self.value.min_value.item()
+                        max_val = self.value.max_value.item()
+
+                        s = f'{class_name}\n'
+                        s += f'  ┏ min value {min_val}{units_suffix}\n'
+                        s += f'  ┗ max value {max_val}{units_suffix}\n'
+                        return s + f'{self.value.item()}{units_suffix}'
+
+                except ImportError:
+                    pass
 
                 return f'{class_name}\n{self.value.item()}{units_suffix}'
 
@@ -410,3 +416,29 @@ class ParameterSpecs:
         """
         self.parameter_name = parameter_name
         self.representations = representations
+
+
+class SubelementSpecs:
+    """Container for named subelement
+    """
+    def __init__(
+        self,
+        subelement_type: str,
+        subelement: 'Specsable'
+    ):
+        """
+        Parameters
+        ----------
+        subelement_type : str
+            human-readable type of the subelement.
+        subelement : Specsable
+            the subelement.
+        """
+        self.subelement_type = subelement_type
+        self.subelement = subelement
+
+
+class Specsable(Protocol):
+    """Represents any specsable object"""
+    def to_specs(self) -> Iterable[ParameterSpecs | SubelementSpecs]:
+        ...

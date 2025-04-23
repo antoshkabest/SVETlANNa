@@ -8,6 +8,7 @@ from ..wavefront import Wavefront
 from ..axes_math import tensor_dot
 from warnings import warn
 from ..specs import PrettyReprRepr, ParameterSpecs
+from ..visualization import ElementHTML, jinja_env
 
 
 class FreeSpace(Element):
@@ -316,3 +317,14 @@ class FreeSpace(Element):
                 ]
             )
         ]
+
+    @staticmethod
+    def _widget_html_(
+        index: int,
+        name: str,
+        element_type: str | None,
+        subelements: list[ElementHTML]
+    ) -> str:
+        return jinja_env.get_template('widget_free_space.html.jinja').render(
+            index=index, name=name, subelements=subelements
+        )

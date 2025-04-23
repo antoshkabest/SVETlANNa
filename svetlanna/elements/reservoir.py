@@ -1,9 +1,11 @@
+from svetlanna.specs import ParameterSpecs, SubelementSpecs, PrettyReprRepr
 from ..parameters import OptimizableFloat
 from ..simulation_parameters import SimulationParameters
 from ..wavefront import Wavefront
 from .element import Element
 from collections import deque
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Iterable, Union
+from ..visualization import ElementHTML, jinja_env
 
 if TYPE_CHECKING:
     from svetlanna.setup import LinearOpticalSetup
@@ -113,3 +115,29 @@ class SimpleReservoir(Element):
         # add output to the delay line
         self.append_feedback_queue(output)
         return output
+
+    def to_specs(self) -> Iterable[ParameterSpecs | SubelementSpecs]:
+        return (
+            ParameterSpecs('feedback_gain', (
+                PrettyReprRepr(self.feedback_gain),
+            )),
+            ParameterSpecs('input_gain', (
+                PrettyReprRepr(self.input_gain),
+            )),
+            ParameterSpecs('delay', (
+                PrettyReprRepr(self.delay),
+            )),
+            SubelementSpecs('Nonlinear element', self.nonlinear_element),
+            SubelementSpecs('Delay element', self.delay_element)
+        )
+
+    @staticmethod
+    def _widget_html_(
+        index: int,
+        name: str,
+        element_type: str | None,
+        subelements: list[ElementHTML]
+    ) -> str:
+        return jinja_env.get_template('widget_reservoir.html.jinja').render(
+            index=index, name=name, subelements=subelements
+        )
