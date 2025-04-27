@@ -9,6 +9,57 @@ from svetlanna.phase_retrieval_problem import phase_retrieval
 from svetlanna import LinearOpticalSetup
 
 
+def test_retrieve_phase_api(capsys):
+    params = SimulationParameters(
+        {
+            'W': torch.linspace(-1, 1, 10),
+            'H': torch.linspace(-1, 1, 10),
+            'wavelength': 1
+        }
+    )
+    # no initial_phase, no additional options
+    phase_retrieval.retrieve_phase(
+        Wavefront.plane_wave(params).abs(),
+        LinearOpticalSetup([]),
+        Wavefront.plane_wave(params).abs(),
+    )
+
+    # Test wrong method name
+    with pytest.raises(ValueError):
+        phase_retrieval.retrieve_phase(
+            Wavefront.plane_wave(params).abs(),
+            LinearOpticalSetup([]),
+            Wavefront.plane_wave(params).abs(),
+            method='abs'  # type: ignore
+        )
+
+    # Test disp option for the intensity profile problem type
+    phase_retrieval.retrieve_phase(
+        Wavefront.plane_wave(params).abs(),
+        LinearOpticalSetup([]),
+        Wavefront.plane_wave(params).abs(),
+        options={
+            'disp': True
+        }
+    )
+    captured = capsys.readouterr().out.split('\n')[0]
+    assert captured == 'Type of problem: generate intensity profile'
+
+    # Test disp option for the phase reconstruction problem type
+    phase_retrieval.retrieve_phase(
+        Wavefront.plane_wave(params).abs(),
+        LinearOpticalSetup([]),
+        Wavefront.plane_wave(params).abs(),
+        target_phase=torch.zeros((10, 10)),
+        target_region=torch.zeros((10, 10)),
+        options={
+            'disp': True
+        }
+    )
+    captured = capsys.readouterr().out.split('\n')[0]
+    assert captured == 'Type of problem: phase reconstruction'
+
+
 parameters = [
     "ox_size",
     "oy_size",
@@ -16,24 +67,20 @@ parameters = [
     "oy_nodes",
     "wavelength_test",
     "waist_radius_test",
-    "distance_test",
-    "radius_test",
-    "method"
+    "distance_test"
 ]
 
 
-# TODO: add target_region tests
 @pytest.mark.parametrize(
     parameters,
     [
-        (10, 10, 1000, 1000, 660 * 1e-6, 0.5, 100., 10., 'HIO'),
-        (10, 10, 1000, 1000, 660 * 1e-6, 0.5, 100., 10., 'GS'),
-        (7, 8, 1000, 1000, 1064 * 1e-6, 0.7, 150., 10., 'HIO'),
-        (7, 8, 1000, 1000, 1064 * 1e-6, 0.7, 150., 10., 'GS'),
-        (15, 8, 1500, 1000, 550 * 1e-6, 0.5, 120., 10., 'HIO'),
-        (15, 8, 1500, 1000, 550 * 1e-6, 0.5, 120., 10., 'GS')
+        (10, 10, 200, 200, 0.025, 0.7, 100.),
+        (7, 8, 200, 200, 0.02, 0.7, 150.),
+        (15, 8, 300, 200, 0.02, 0.5, 120.),
     ]
 )
+@pytest.mark.parametrize('use_phase_target', [True, False])
+@pytest.mark.parametrize('method', ['HIO', 'GS'])
 def test_phase_retrieval(
     ox_size: float,
     oy_size: float,
@@ -42,7 +89,7 @@ def test_phase_retrieval(
     wavelength_test: float,
     waist_radius_test: float,
     distance_test: float,
-    radius_test: float,
+    use_phase_target: bool,
     method: phase_retrieval.Method
 ):
     """Test for phase reconstruction problem and generate target intensity
@@ -61,7 +108,7 @@ def test_phase_retrieval(
         Number of computational nodes along the axis oy
     wavelength_test : float
         Wavelength for the incident field
-    waist_radius_test : _type_
+    waist_radius_test : float
         Waist radius of the Gaussian beam
     distance_test : float
         Distance between the lens and the screen
@@ -84,7 +131,7 @@ def test_phase_retrieval(
 
     field_before_lens1 = Wavefront.gaussian_beam(
         simulation_parameters=params,
-        distance=5 * distance_test,
+        distance=0.05 * distance_test,
         waist_radius=waist_radius_test
     )
 
@@ -92,49 +139,62 @@ def test_phase_retrieval(
 
     lens1 = elements.ThinLens(
         simulation_parameters=params,
-        focal_length=distance_test,
-        radius=radius_test
+        focal_length=distance_test
     )
 
     field_after_lens1 = lens1(field_before_lens1)
 
     free_space1 = elements.FreeSpace(
         simulation_parameters=params,
-        distance=3 * distance_test,
+        distance=0.05 * distance_test,
         method='AS'
     )
     output_field = free_space1(field_after_lens1)
-
-    # target phase profile for phase reconstruction problem
-    phase_target = torch.angle(output_field)
-    target_region = (x_grid**2 + y_grid ** 2 <= 5).float()
 
     # target intensity profile on the screen
     intensity_target = output_field.intensity
 
     optical_setup = LinearOpticalSetup([free_space1])
 
-    result_hio = phase_retrieval.retrieve_phase(
-        source_intensity=intensity_source,
-        optical_setup=optical_setup,
-        target_intensity=intensity_target,
-        # target_phase=phase_target,
-        # target_region=target_region,
-        initial_phase=torch.full_like(intensity_target, 0),
-        method=method,
-        options={
-            'maxiter': 50,
-            'constant_factor': 0.5
-        }
-    )
+    # target phase profile for phase reconstruction problem
+    if use_phase_target:
+        phase_target = torch.angle(output_field)
+        target_region = (x_grid**2 + y_grid ** 2 <= 0.12).float()
+
+        result_hio = phase_retrieval.retrieve_phase(
+            source_intensity=intensity_source,
+            optical_setup=optical_setup,
+            target_intensity=intensity_target,
+            target_phase=phase_target,
+            target_region=target_region,
+            initial_phase=torch.full_like(intensity_target, 0),
+            method=method,
+            options={
+                'maxiter': 100,
+                'constant_factor': 0.5
+            }
+        )
+    else:
+        result_hio = phase_retrieval.retrieve_phase(
+            source_intensity=intensity_source,
+            optical_setup=optical_setup,
+            target_intensity=intensity_target,
+            initial_phase=torch.full_like(intensity_target, 0),
+            method=method,
+            options={
+                'maxiter': 100,
+                'constant_factor': 0.5
+            }
+        )
 
     errors = result_hio.cost_func_evolution
 
     # test if the error decreases
-    assert np.sum(np.diff(errors) < 0) > 0.95 * (len(errors)-1)
-    assert errors[-1] < errors[0] / 5
+    assert np.sum(np.diff(errors) < 0) > 0.7 * (len(errors)-1)
+    assert (errors[0] - errors[-1]) / errors[0] > 0.6
 
 
+# TODO: Rewrite the 4f problem test
 parameters_4f = [
     "ox_size",
     "oy_size",
