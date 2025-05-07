@@ -4,7 +4,9 @@ import torch
 from torch import nn
 from svetlanna import Wavefront, SimulationParameters, ConstrainedParameter
 from svetlanna import elements
-
+# for visualisation:
+from svetlanna import LinearOpticalSetup
+from svetlanna.specs import ParameterSpecs, SubelementSpecs
 
 class ConvLayer4F(nn.Module):
     """
@@ -206,6 +208,18 @@ class ConvDiffNetwork4F(nn.Module):
         result = self.net_after_conv(wavefront_after_convolution)
 
         return result
+
+    def to_specs(self) -> Iterable[ParameterSpecs | SubelementSpecs]:
+        return (
+            SubelementSpecs(
+                '4F Convolution System',
+                LinearOpticalSetup(list(self.conv_layer.conv_layer_4f))
+            ),
+            SubelementSpecs(
+                'Linear Setup',
+                LinearOpticalSetup(list(self.net_after_conv))
+            ),
+        )
 
     def to(self, device: str | torch.device | int) -> 'ConvDiffNetwork4F':
         if self.__device == torch.device(device):

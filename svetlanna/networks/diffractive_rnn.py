@@ -1,6 +1,12 @@
+from typing import Iterable
+
 import torch
 from torch import nn
 from svetlanna import Wavefront, SimulationParameters
+# for visualisation:
+from svetlanna import LinearOpticalSetup
+from svetlanna.specs import ParameterSpecs, SubelementSpecs
+from svetlanna.specs import PrettyReprRepr
 
 
 class DiffractiveRNN(nn.Module):
@@ -102,6 +108,32 @@ class DiffractiveRNN(nn.Module):
         out = self.detector_layer(self.read_out_layer(h_prev))
 
         return out
+
+    def to_specs(self) -> Iterable[ParameterSpecs | SubelementSpecs]:
+        return (
+            ParameterSpecs('sequence_len', (
+                PrettyReprRepr(self.sequence_len),
+            )),
+            ParameterSpecs('fusing_coeff', (
+                PrettyReprRepr(self.fusing_coeff),
+            )),
+            SubelementSpecs(
+                'Read-in Layer',
+                LinearOpticalSetup(list(self.read_in_layer))
+            ),
+            SubelementSpecs(
+                'Memory Layer',
+                LinearOpticalSetup(list(self.memory_layer))
+            ),
+            SubelementSpecs(
+                'Hidden Forward Layer',
+                LinearOpticalSetup(list(self.hidden_forward_layer))
+            ),
+            SubelementSpecs(
+                'Read-out Layer',
+                LinearOpticalSetup(list(self.read_out_layer))
+            ),
+        )
 
     def to(self, device: str | torch.device | int) -> 'DiffractiveRNN':
         if self.__device == torch.device(device):

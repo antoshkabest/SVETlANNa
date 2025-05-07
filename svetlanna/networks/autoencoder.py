@@ -3,6 +3,9 @@ import torch
 from torch import nn
 from svetlanna import Wavefront, SimulationParameters
 from svetlanna.elements import Element
+# for visualisation:
+from svetlanna import LinearOpticalSetup
+from svetlanna.specs import ParameterSpecs, SubelementSpecs
 
 
 class LinearAutoencoder(nn.Module):
@@ -101,6 +104,18 @@ class LinearAutoencoder(nn.Module):
         wavefront_decoded = self.decode(wavefront_encoded)
         # results to calculate loss
         return wavefront_encoded, wavefront_decoded
+
+    def to_specs(self) -> Iterable[ParameterSpecs | SubelementSpecs]:
+        return (
+            SubelementSpecs(
+                'Encoder',
+                LinearOpticalSetup(self.encoder_elements)
+            ),
+            SubelementSpecs(
+                'Decoder',
+                LinearOpticalSetup(self.decoder_elements)
+            ),
+        )
 
     def to(self, device: str | torch.device | int) -> 'LinearAutoencoder':
         if self.__device == torch.device(device):
