@@ -1,6 +1,6 @@
 [project]
 name = "svetlanna"
-version = "1.0.0"
+version = "1.0.2"
 description = "Open source library for simulation and engineering of optical setups and diffractive neural networks"
 authors = [
     {name="Alexey A. Shcherbakov", email="alexey.shcherbakov@metalab.ifmo.ru"},
@@ -11,6 +11,7 @@ authors = [
 ]
 license = { file = "LICENSE" }
 readme = "README.md"
+keywords = [ "optics", "photonics", "Fourier optics", "diffractive deep neural networks", "optical neural networks" ]
 requires-python = ">=3.11.0,<3.12"
 dependencies = [
     "numpy<2.0",
