@@ -1,11 +1,11 @@
 [![en](https://img.shields.io/badge/lang-EN-blue.svg)](https://github.com/CompPhysLab/SVETlANNa/blob/main/README.md)
-[![ru](https://img.shields.io/badge/lang-RU-green.svg)](https://github.com/CompPhysLab/SVETlANNa/main/README.ru.md)
+[![ru](https://img.shields.io/badge/lang-RU-green.svg)](https://github.com/CompPhysLab/SVETlANNa/blob/main/README.ru.md)
 
 # SVETlANNa
 
 SVETlANNa is an open-source Python library for simulation of free-space optical set-ups and neuromorphic systems such as Diffractive Neural Networks. It is primarily built on the PyTorch framework, leveraging key features such as tensor-based computations and efficient parallel processing. At its core, SvetlANNa relies on the Fourier optics, supporting multiple propagation models, including the Angular spectrum method and the Fresnel approximation.
 
-There is a supporting github project [SVETlANNa.docs](https://github.com/CompPhysLab/SVETlANNa.docs) containing numerous application examples in the Jupyter notebook format. This project will be opened upon the release.
+There is a supporting github project [SVETlANNa.docs](https://github.com/CompPhysLab/SVETlANNa.docs) containing numerous application examples in the Jupyter notebook format.
 
 The name of the library is composed of the Russian word "svet", which is the "light" in English and the abbreviation ANN standing for an artificial neural network, and simultaneously the whole word sounds like a Russian female name Svetlana.
 
@@ -36,10 +36,21 @@ SLM - Spatial Light Modulator
 - custom logging, project management, analysis, and visualization tools
 - tests for the whole functionality
 
+## Possible applications
+
+- modeling and optimization of optical systems and optical beams propagating in free space;
+- calculation of parameters of phase masks, DOEs and SLMs for both classical optical systems and neuromorphic optical computers;
+- modeling and optimization of parameters of ONN and DONN for problems of all-optical classification and prediction.
 
 # Installation, Usage and Examples
 
 For usage there are two options, either run from the source or install from pip.
+
+## Installation From PyPI
+
+```bash
+pip install svetlanna
+```
 
 ## Running From Source
 
@@ -65,12 +76,6 @@ We reccomend first to install [git](https://git-scm.com) in your system.
 6. Install the PyTorch (check the instructions at the official [cite](https://pytorch.org/get-started/locally/)). Choose options appropriate to your system. For running the library on a GPU you need to have an appropriate graphic card and a PyTorch version which supports this card.
 ```bash
   pip install torch
-```
-
-## Installation From PIP
-
-```bash
-pip install svetlanna
 ```
 
 ## Running Tests
@@ -103,8 +108,6 @@ Example a of five-layer DONN trained to recognize numbers from the MNIST databas
 <img src="./pics/MNIST example 2.png" alt="drawing" width="400"/>
 
 <img src="./pics/MNIST example 3.png" alt="drawing" width="400"/>
-
-Example of 
 
 # Contributing
 
