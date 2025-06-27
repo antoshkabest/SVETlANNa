@@ -93,6 +93,62 @@ To run tests, run the following command (within the activated virtual environmen
 
 [Documentation](https://compphyslab.github.io/SVETlANNa/)
 
+## Running examples with library installation
+
+Examples of various scenarios and setups are provided in the repository [SVETlANNa.docs](https://github.com/CompPhysLab/SVETlANNa.docs).
+
+To run the example locally follow the instructions:
+1. Clone the repository (you should have an installed [git](https://git-scm.com)):
+```bash
+  git clone https://github.com/CompPhysLab/SVETlANNa.docs.git
+```
+2. Go to the project directory:
+```bash
+  cd SVETlANNa.docs
+```
+3.Create a virtual environment for Python 3.11 (see [venv documentation](https://docs.python.org/3/library/venv.html)) and activate it. All subsequent actions should be done within the activated environment.
+4. Install the main library:
+```bash
+  pip install svetlanna
+```
+5. Install the PyTorch (check the instructions at the official [cite](https://pytorch.org/get-started/locally/)). Choose options appropriate to your system. For running the library on a GPU you need to have an appropriate graphic card and a PyTorch version which supports this card.
+6. If you do not have the Jupyter notebook in your system, install it:
+```bash
+  pip install notebook
+```
+7. Install additional dependencies:
+```bash
+  pip install reservoirpy matplotlib tqdm requests av scikit-image py-cpuinfo gputil
+```
+8. Run the Jupyter notebook:
+```bash
+  jupyter notebook
+```
+and open the page in your browser (see “Or copy and paste one of these URLs:” in a terminal window)
+9. Go to the folder SVETlANNa.docs. Examples are grouped into subject subfolders in form of .ipynb files. To run them you need to open a file in the Jupyter notebook and run all code cells (key Shift+Enter).
+
+## Запуск примеров с установленной из исходников библиотекой SVETlANNa
+
+1. Clone the repository (you should have an installed [git](https://git-scm.com)):
+```bash
+	git clone https://github.com/CompPhysLab/SVETlANNa.docs.git 
+```
+All subsequent actions should be done within the activated environment, which was used to install the SVETlANNa library from source.
+2. If you do not have the Jupyter notebook in your system, install it:
+```bash
+  pip install notebook
+```
+3. Install additional dependencies:
+```bash
+  pip install reservoirpy matplotlib tqdm requests av scikit-image py-cpuinfo gputil
+```
+4. Run the Jupyter notebook:
+```bash
+  jupyter notebook
+```
+and open the page in your browser (see “Or copy and paste one of these URLs:” in a terminal window)
+5. Go to the folder SVETlANNa.docs. Examples are grouped into subject subfolders in form of .ipynb files. To run them you need to open a file in the Jupyter notebook and run all code cells (key Shift+Enter).
+
 ## Examples
 
 Result of training the feed-forward optical neural network for the MNIST classification task: The image of the figure "8" is passed through a stack of 10 phase plates with adjusted phase masks. Selected regions of the detector correspond to different classes of figures. The class of the figure is identified by the detector region that measures the maximum optical intensity.
