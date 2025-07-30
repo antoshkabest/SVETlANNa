@@ -384,7 +384,7 @@ def write_specs(
 
     elements = _ElementsIterator(*iterables, directory=directory)
 
-    with open(path, 'w') as file:
+    with open(path, 'w', encoding='utf-8') as file:
         if filename.endswith('.txt'):
             for elemennt_index, element, writer_context_generator in elements:
                 write_specs_to_str(
