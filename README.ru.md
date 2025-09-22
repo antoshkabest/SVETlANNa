@@ -79,6 +79,7 @@ SVETlANNa — это библиотека на языке Python с открыт
    |------------|------|-|-------------------|
    |Nvidia GTX 970|`11.8`|`2.7.1`|`pip install torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1 --index-url https://download.pytorch.org/whl/cu118`|
    |Nvidia GTX 1060|`11.8`|`2.7.1`|`pip install torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1 --index-url https://download.pytorch.org/whl/cu118`|
+   |Nvidia RTX 4060|`12.8`|`2.7.1`|`pip install torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1 --index-url https://download.pytorch.org/whl/cu128`|
    <!-- * Версия Compute Capability вашей видеокарты должен поддерживаться выбранной версией PyTorch. Узнать версию Compute Capability можно на [этой странице](https://developer.nvidia.com/cuda-gpus) или для более старых версий на [этой странице](https://developer.nvidia.com/cuda-legacy-gpus). Поддерживаемые версии Compute Capability для PyTorch можно найти [тут](https://github.com/moi90/pytorch_compute_capabilities/blob/main/table.md) -->
    
 
@@ -124,6 +125,7 @@ SVETlANNa — это библиотека на языке Python с открыт
    |------------|------|-|-------------------|
    |Nvidia GTX 970|`11.8`|`2.7.1`|`pip install torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1 --index-url https://download.pytorch.org/whl/cu118`|
    |Nvidia GTX 1060|`11.8`|`2.7.1`|`pip install torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1 --index-url https://download.pytorch.org/whl/cu118`|
+   |Nvidia RTX 4060|`12.8`|`2.7.1`|`pip install torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1 --index-url https://download.pytorch.org/whl/cu128`|
 
 ## Запуск тестов
 
@@ -179,6 +181,7 @@ pytest
    |------------|------|-|-------------------|
    |Nvidia GTX 970|`11.8`|`2.7.1`|`pip install torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1 --index-url https://download.pytorch.org/whl/cu118`|
    |Nvidia GTX 1060|`11.8`|`2.7.1`|`pip install torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1 --index-url https://download.pytorch.org/whl/cu118`|
+   |Nvidia RTX 4060|`12.8`|`2.7.1`|`pip install torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1 --index-url https://download.pytorch.org/whl/cu128`|
 6. Установите Jupyter notebook в ваше виртуальное окружение:
    ```bash
    pip install notebook
