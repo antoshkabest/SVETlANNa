@@ -31,7 +31,7 @@ SLM - Spatial Light Modulator
 - support for custom elements and optimization methods
 - support for various free-space ONN architectures including feed-forward NN, autoencoders, and recurrent NN
 - cross platform
-- full GPU aceleration
+- full GPU acceleration
 - companion repository with numerous .ipynb examples
 - custom logging, project management, analysis, and visualization tools
 - tests for the whole functionality
