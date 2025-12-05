@@ -169,7 +169,7 @@ Examples of visualzation of optical set-ups and optical fields:
 
 <img src="./pics/visualization.png" alt="drawing" width="400"/>
 
-Example a of five-layer DONN trained to recognize numbers from the MNIST database:
+Example of a five-layer DONN trained to recognize numbers from the MNIST database:
 
 <img src="./pics/MNIST example 1.png" alt="drawing" width="400"/>
 
