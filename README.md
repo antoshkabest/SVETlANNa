@@ -69,7 +69,7 @@ We reccomend first to install [git](https://git-scm.com) in your system.
 ```bash
   git clone https://github.com/CompPhysLab/SVETlANNa.git
 ```
-2. Move to the project dyrectory:
+2. Move to the project directory:
 ```bash
   cd SVETlANNa
 ```
