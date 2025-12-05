@@ -134,6 +134,7 @@ To run the example locally follow the instructions:
   jupyter notebook
 ```
 and open the page in your browser (see “Or copy and paste one of these URLs:” in a terminal window)
+
 9. Go to the folder SVETlANNa.docs. Examples are grouped into subject subfolders in form of .ipynb files. To run them you need to open a file in the Jupyter notebook and run all code cells (key Shift+Enter).
 
 ## Running examples with SVETlANNa installed from source
@@ -143,6 +144,7 @@ and open the page in your browser (see “Or copy and paste one of these URLs:�
 	git clone https://github.com/CompPhysLab/SVETlANNa.docs.git 
 ```
 All subsequent actions should be done within the activated environment, which was used to install the SVETlANNa library from source.
+
 2. If you do not have the Jupyter notebook in your system, install it:
 ```bash
   pip install notebook
@@ -156,6 +158,7 @@ All subsequent actions should be done within the activated environment, which wa
   jupyter notebook
 ```
 and open the page in your browser (see “Or copy and paste one of these URLs:” in a terminal window)
+
 5. Go to the folder SVETlANNa.docs. Examples are grouped into subject subfolders in form of .ipynb files. To run them you need to open a file in the Jupyter notebook and run all code cells (key Shift+Enter).
 
 ## Examples
